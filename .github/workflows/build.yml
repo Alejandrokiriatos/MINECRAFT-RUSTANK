@@ -39,8 +39,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p run/server
-          printf 'eula=true\\n' > run/server/eula.txt
-          printf 'online-mode=false\\nserver-port=25575\\nlevel-name=rustank-smoke-world\\n' > run/server/server.properties
+          printf '%s\n' 'eula=true' > run/server/eula.txt
+          printf '%s\n' 'online-mode=false' 'server-port=25575' 'level-name=rustank-smoke-world' > run/server/server.properties
           set +e
           timeout 240s gradle runServer --no-daemon --console=plain > server-smoke.log 2>&1
           server_status=$?
