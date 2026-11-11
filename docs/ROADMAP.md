@@ -7,10 +7,14 @@
 - [x] Añadir smoke test automatizado de arranque del servidor dedicado en CI (pendiente validar el nuevo workflow).
 
 ## Etapa 1 — supervivencia
-- [ ] Sed, hambre y temperatura.
-- [ ] Estados de heridas, sangrado y curación.
-- [ ] Persistencia de atributos entre reinicios.
-- [ ] HUD de supervivencia.
+- [x] Modelo de dominio de hidratación con drenaje, estados y valores para HUD.
+- [x] Modelo de dominio de hambre con drenaje, estados y valores para HUD.
+- [ ] Conectar hambre y sed al ciclo de vida/tick de jugadores.
+- [ ] Persistencia de hambre y sed entre desconexiones y reinicios.
+- [ ] Sincronización servidor-cliente y HUD de supervivencia.
+- [ ] Consumo de agua y alimentos dentro del juego.
+- [ ] Penalizaciones graduales por hambre y deshidratación.
+- [ ] Temperatura, heridas, sangrado y curación.
 
 ## Etapa 2 — mundo y economía de recursos
 - [x] Definir el área inicial de mapa de 4.000 × 4.000 bloques.
@@ -20,9 +24,8 @@
 - [x] Planificar vegetación determinista por chunk según bioma y pendiente.
 - [x] Exportar una vista previa PNG reproducible del mapa, puntos de interés y campos de recursos.
 - [ ] Generar chunks automáticamente a partir del perfil de terreno.
-- [x] Añadir comando administrativo `/rustank generate` para materializar terreno y vegetación en el chunk del jugador (puente manual; aún no es generación automática).
+- [x] Añadir comando administrativo /rustank generate para materializar terreno y vegetación en el chunk del jugador (puente manual; aún no es generación automática).
 - [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
-- [x] Aplicar la frontera vanilla del servidor (4.000 × 4.000) en todas las dimensiones al iniciar.
 - [ ] Reforzar los límites en teletransportes, portales y puntos de aparición.
 - [ ] Nodos físicos de piedra, metal y azufre con reservas y reaparición.
 - [ ] Monumentos, carreteras y zonas de riesgo construidos.
@@ -49,28 +52,18 @@
 - [ ] Moderación, reglas, backups y recuperación.
 - [ ] Despliegue público y guía de conexión.
 
-## Estado añadido: plano vertical de chunks
+## Estado actual del mundo
 
-El modelo lógico de chunks describe materiales por altura Y: superficie, capas de tierra o arenisca, roca profunda, lecho marino y agua hasta el nivel del mar. El comando `/rustank generate` ya consume ese plano y coloca bloques en el chunk del jugador, respetando el límite del mapa. La integración sigue siendo manual y localizada; no sustituye todavía al generador automático de chunks.
+El mapa inicial está definido como un área de 4.000 × 4.000 bloques, con frontera vanilla aplicada al arrancar. El terreno, los monumentos y los recursos cuentan con planificadores deterministas y una vista previa PNG, pero la generación dentro del mundo sigue siendo un comando manual por chunk. El servidor no debe anunciarse como un Rust jugable hasta completar el generador real, los sistemas de recursos, la supervivencia y el combate.
 
-## Vegetación lógica por chunk
+## Plano vertical y vegetación
 
-Se añadió un planificador determinista de árboles, arbustos y cactus. La distribución se ancla a una cuadrícula global para evitar duplicados al consultar chunks vecinos. Respeta biomas, límites de mapa y pendientes. El comando manual ya materializa robles, pinos, helechos y cactus en el chunk solicitado.
+El modelo lógico de chunks calcula materiales por altura Y, costa, perfil de terreno y lecho submarino. El comando /rustank generate materializa el plano del chunk del jugador, junto con árboles, arbustos y cactus deterministas. Este puente sirve para pruebas controladas; no sustituye todavía al generador automático.
 
-## Vista previa reproducible del mundo
+## Vista previa y economía
 
-El proyecto puede exportar un PNG cenital de 1.000 × 1.000 píxeles que representa el mapa de 4.000 × 4.000 bloques, con biomas y círculos de exclusión/ubicaciones de los cinco puntos de interés. La tarea `generateWorldPreview` genera el archivo en `build/reports/rustank-world-preview.png`; CI lo publica como artefacto descargable. Es una herramienta de inspección del diseño, no un mapa Minecraft jugable.
+La tarea generateWorldPreview exporta un PNG cenital reproducible del mapa de 4.000 × 4.000 bloques. Incluye biomas, puntos de interés y marcadores de depósitos superficiales de piedra, metal y azufre. Estos marcadores son planificación visual: todavía no representan nodos minables persistidos en Minecraft.
 
-## Distribución de recursos en la vista previa
+## Frontera
 
-La vista previa ahora dibuja depósitos superficiales planificados de piedra, metal y azufre, respetando las zonas de exclusión de los monumentos y la separación mínima entre depósitos. Los puntos usan símbolos de color para distinguir cada recurso. Son marcadores de diseño: todavía no son bloques minables ni reservas persistidas dentro del mundo.
-
-
-## Frontera inicial del servidor
-
-Al arrancar el servidor, Rustank configura la frontera vanilla en todas las dimensiones con centro (0, 0), diámetro de 4.000 bloques y aviso a 16 bloques del borde. Esto restringe el desplazamiento normal de los jugadores y mantiene alineada la frontera visible con el área de diseño. La generación de terreno, los teletransportes y los portales aún necesitan validaciones propias antes de considerar el mapa completamente cerrado.
-
-
-## Relieve submarino
-
-El plano vertical calcula ahora un lecho marino determinista con variación de gran escala y detalle local. La profundidad queda entre Y=30 y Y=50, bajo el nivel del mar Y=63, con arena en el fondo, tres capas lógicas de arenisca y roca más profunda. Los tests verifican reproducibilidad, variación y cobertura de agua. Sigue siendo un plano lógico pendiente de conexión al generador real de chunks.
+Al iniciar, el servidor aplica una frontera de 4.000 × 4.000 bloques centrada en (0, 0) en todas las dimensiones. Faltan validaciones específicas para teletransportes, portales y puntos de aparición.
