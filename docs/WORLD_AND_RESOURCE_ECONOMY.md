@@ -7,6 +7,9 @@ El mapa planeado mide 4.000 × 4.000 bloques: X/Z desde -2.000 inclusive hasta 2
 
 Este plano es una representación de datos intermedia: todavía no coloca bloques ni modifica chunks de Minecraft.
 
+## Vegetación planificada
+`VegetationPlanner` calcula árboles, arbustos y cactus mediante una cuadrícula global determinista de 12 bloques. Los resultados se consultan por chunk, se mantienen dentro del chunk y de los límites de la isla, respetan los biomas y descartan pendientes pronunciadas. Al estar anclados a celdas del mundo, consultar chunks vecinos en distinto orden no duplica las posiciones. Son ubicaciones lógicas: aún no construyen árboles ni colocan bloques.
+
 ## Puntos de interés
 La semilla determina cinco puntos de interés: spawn, aeródromo, puerto, base militar y zona radiactiva. Todos los centros se colocan en tierra; el puerto se reserva cerca de la costa. Los radios de exclusión mantienen separados los monumentos.
 
