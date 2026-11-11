@@ -1,35 +1,33 @@
 # Mundo limitado y economía de recursos
 
 ## Diseño inicial del mapa
-
 - Área de juego: 4.000 × 4.000 bloques en X/Z.
-- Coordenadas válidas: -2.000 inclusive a 2.000 exclusive en ambos ejes.
-- El centro (0, 0) es la referencia para el diseño de la isla y la distribución de monumentos.
-- El límite debe ser una frontera real del servidor, no solo una barrera visual: movimiento, teletransporte, portales y generación deben respetarlo.
-- La primera generación procedural se organizará por sectores con semilla estable para que el mismo servidor produzca el mismo mapa tras reinicios.
-- Los monumentos y depósitos se ubicarán mediante una planificación determinista y con distancias mínimas para evitar solapamientos.
+- Coordenadas válidas: -2.000 inclusive a 2.000 exclusive.
+- Franja de 64 bloques reservada en el borde para evitar nodos pegados a la frontera.
+- La semilla del mundo determina la ubicación de los depósitos de forma reproducible.
+- La primera distribución usa separación mínima para evitar agrupaciones o solapamientos.
 
-La clase `WorldBounds` implementa y prueba la geometría exacta del área. Todavía no aplica la frontera al mundo: falta conectar las reglas a eventos Forge y a la configuración de world border del servidor.
+`WorldBounds` implementa la geometría del mapa. Aún falta aplicar el límite a movimiento, teletransporte, portales y generación real del terreno.
 
-## Evitar que cavar hacia abajo rompa la economía
+## Economía: excavar no debe ser la estrategia principal
+- Piedra, adoquín, pizarra profunda y minerales vanilla no deben entregar materiales Rustank.
+- Los recursos económicos se obtienen en depósitos especiales visibles en superficie.
+- Los nodos tienen reservas finitas: piedra 900, metal 450 y azufre 350 unidades por nodo.
+- Al agotarse, cada nodo inicia un temporizador de reaparición: piedra 30 min, metal 45 min y azufre 60 min (20 TPS).
+- La extracción y reaparición se modelan en ticks del servidor; el servidor debe ser la autoridad para evitar duplicación y trampas.
+- Los nodos no deben aparecer bajo edificios, en túneles ni dentro de monumentos; el generador final deberá validar altura, bioma, distancia a monumentos y construcciones.
+- Los bloques puestos por jugadores no se reciclan como depósitos: tendrán reglas de construcción y devolución parcial separadas.
+- Los drops vanilla bloqueados son una barrera adicional; también habrá que revisar recetas, cofres, comercio, aldeanos, generadores y exploits de duplicación.
 
-No se deben entregar piedra, minerales ni materiales de construcción por minar bloques geológicos vanilla. Si no, cualquier jugador puede cavar una mina infinita y saltarse los puntos de interés, las herramientas y el riesgo PvP.
+## Implementación de esta tanda
+- `ResourceDeposit`: reserva finita y reaparición temporizada.
+- `ResourceFieldPlanner`: distribución determinista por semilla, dentro del mapa y con distancia mínima.
+- Pruebas unitarias de reservas, reaparición, determinismo y separación.
+- Todavía no están conectados a bloques, eventos Forge, guardado de mundo ni HUD; no cambian aún la extracción dentro del juego.
 
-Reglas previstas:
-
-1. Piedra, pizarra profunda, adoquín y variantes geológicas vanilla no entregan recursos Rustank.
-2. Los minerales vanilla tampoco entregan sus drops normales; metal, azufre y componentes se obtienen mediante depósitos Rustank específicos.
-3. La piedra útil se extrae de nodos/afloramientos visibles en la superficie, con herramienta adecuada, tiempo de extracción y cantidad limitada por nodo.
-4. Los depósitos tienen cantidades finitas por jugador/servidor y un tiempo de reaparición configurable; no se generan en túneles ni debajo de bases.
-5. El reciclaje de objetos y el loot son fuentes controladas adicionales, no duplicadores.
-6. La generación del subsuelo no debe crear vetas vanilla aprovechables. La protección de drops es una segunda barrera, no un sustituto de controlar la generación.
-7. Los bloques colocados por jugadores no deben convertirse en recursos al romperse: se aplicarán reglas separadas de construcción y devolución parcial.
-
-`MiningRules` implementa ahora la política pura para identificar drops vanilla que deben suprimirse. Aún falta conectarla al evento de drops/break de Forge y crear los nodos de recursos; hasta entonces esta regla no cambia el juego.
-
-## Siguiente implementación
-
-- Conectar el límite al servidor y bloquear cruces por movimiento, teletransporte y portales.
-- Añadir nodos de piedra, metal y azufre con reservas y respawn en el servidor.
-- Desactivar la generación de minerales vanilla o sustituirla por la distribución controlada.
-- Generar la isla, biomas, carreteras y monumentos por sectores con una semilla persistente.
+## Próximos pasos
+1. Conectar la frontera al servidor y restringir teletransportes/portales.
+2. Persistir los depósitos en datos del mundo y validar ubicación contra terreno, monumentos y bases.
+3. Crear bloques/modelos de nodos y herramienta de extracción.
+4. Generar isla, biomas, carreteras y monumentos con semilla estable.
+5. Conectar y probar el sistema completo en un servidor dedicado.

@@ -11,7 +11,7 @@ import java.util.Set;
 public final class MiningRules {
     private static final Set<String> BLOCKED_VANILLA_BLOCKS = Set.of(
             "stone", "cobblestone", "mossy_cobblestone",
-            "deepslate", "cobbled_deepslate",
+            "deepslate", "cobbled_deepslate", "cobbled_deepslate",
             "granite", "diorite", "andesite", "tuff", "calcite",
             "dripstone_block", "pointed_dripstone",
             "coal_ore", "deepslate_coal_ore",
