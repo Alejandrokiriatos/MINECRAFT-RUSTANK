@@ -15,7 +15,6 @@ public final class ResourceFieldPlanner {
     private static final int MAX_DEPOSITS_PER_TYPE = 1_000;
     private static final int MAX_ATTEMPTS = 2_000_000;
     private static final int FEATURE_CLEARANCE = 48;
-    private static final int MAX_FEATURE_EXCLUSION_RADIUS = 1_000;
 
     private ResourceFieldPlanner() { }
 
@@ -24,8 +23,8 @@ public final class ResourceFieldPlanner {
     }
 
     /**
-     * Plans deposits outside the exclusion areas of major points of interest.
-     * A fixed clearance also keeps nodes away from the immediate monument perimeter.
+     * Plans deposits on island land and outside major point-of-interest exclusion areas.
+     * A fixed clearance keeps nodes away from the immediate monument perimeter.
      */
     public static List<PlannedDeposit> plan(long seed, int countPerType, int minSpacing,
                                             List<WorldFeaturePlanner.PlannedFeature> features) {
@@ -36,14 +35,14 @@ public final class ResourceFieldPlanner {
         Objects.requireNonNull(features, "features cannot be null");
         for (WorldFeaturePlanner.PlannedFeature feature : features) {
             Objects.requireNonNull(feature, "feature cannot be null");
-            if (feature.exclusionRadius() < 0
-                    || feature.exclusionRadius() > MAX_FEATURE_EXCLUSION_RADIUS
+            if (feature.exclusionRadius() < 0 || feature.exclusionRadius() > 1_000
                     || !WorldBounds.contains(feature.x(), feature.z())) {
                 throw new IllegalArgumentException("Feature has invalid coordinates or exclusion radius");
             }
         }
 
         SplittableRandom random = new SplittableRandom(seed);
+        IslandShape island = IslandShape.forSeed(seed);
         List<PlannedDeposit> result = new ArrayList<>();
         long spacingSquared = (long) minSpacing * minSpacing;
         long requestedAttempts = Math.max(100L, (long) countPerType * DepositType.values().length * 100L);
@@ -54,7 +53,7 @@ public final class ResourceFieldPlanner {
             for (int attempt = 0; attempt < attempts && placed < countPerType; attempt++) {
                 int x = random.nextInt(WorldBounds.MIN_X + 64, WorldBounds.MAX_X_EXCLUSIVE - 64);
                 int z = random.nextInt(WorldBounds.MIN_Z + 64, WorldBounds.MAX_Z_EXCLUSIVE - 64);
-                if (!WorldBounds.contains(x, z) || conflictsWithFeature(features, x, z)
+                if (!island.isLand(x, z) || conflictsWithFeature(features, x, z)
                         || conflictsWithDeposit(result, x, z, spacingSquared)) continue;
                 result.add(new PlannedDeposit(x, z, type));
                 placed++;

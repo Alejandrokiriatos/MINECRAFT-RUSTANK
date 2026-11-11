@@ -38,6 +38,7 @@ public final class WorldFeaturePlanner {
 
     public static List<PlannedFeature> plan(long seed) {
         SplittableRandom random = new SplittableRandom(seed);
+        IslandShape island = IslandShape.forSeed(seed);
         List<PlannedFeature> features = new ArrayList<>();
 
         // Keep the initial spawn near the island's center, but vary it by world seed.
@@ -57,11 +58,11 @@ public final class WorldFeaturePlanner {
             for (int attempt = 0; attempt < MAX_ATTEMPTS_PER_FEATURE; attempt++) {
                 int x = random.nextInt(min, max);
                 int z = random.nextInt(minZ, maxZ);
-                if (hasClearance(features, type, x, z)) {
-                    features.add(new PlannedFeature(type, x, z, type.exclusionRadius()));
-                    placed = true;
-                    break;
-                }
+                if (!isValidIslandLocation(island, type, x, z)
+                        || !hasClearance(features, type, x, z)) continue;
+                features.add(new PlannedFeature(type, x, z, type.exclusionRadius()));
+                placed = true;
+                break;
             }
             if (!placed) {
                 throw new IllegalStateException("Unable to place world feature " + type
@@ -69,6 +70,12 @@ public final class WorldFeaturePlanner {
             }
         }
         return Collections.unmodifiableList(features);
+    }
+
+    private static boolean isValidIslandLocation(IslandShape island, FeatureType type, int x, int z) {
+        if (!island.isLand(x, z)) return false;
+        return type != FeatureType.HARBOR
+                || island.isNearCoast(x, z, IslandShape.nearCoastDistance());
     }
 
     private static boolean hasClearance(List<PlannedFeature> existing, FeatureType type, int x, int z) {

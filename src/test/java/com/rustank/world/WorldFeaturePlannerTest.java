@@ -15,8 +15,10 @@ class WorldFeaturePlannerTest {
     }
 
     @Test
-    void plansEveryMajorFeatureInsideTheMapWithClearance() {
-        List<WorldFeaturePlanner.PlannedFeature> features = WorldFeaturePlanner.plan(42L);
+    void plansEveryMajorFeatureOnLandInsideTheMapWithClearance() {
+        long seed = 42L;
+        List<WorldFeaturePlanner.PlannedFeature> features = WorldFeaturePlanner.plan(seed);
+        IslandShape island = IslandShape.forSeed(seed);
         assertEquals(WorldFeaturePlanner.FeatureType.values().length, features.size());
         Set<WorldFeaturePlanner.FeatureType> types = new HashSet<>();
 
@@ -25,6 +27,7 @@ class WorldFeaturePlannerTest {
             assertTrue(types.add(a.type()));
             assertEquals(a.type().exclusionRadius(), a.exclusionRadius());
             assertTrue(WorldBounds.contains(a.x(), a.z()));
+            assertTrue(island.isLand(a.x(), a.z()));
             assertTrue(a.x() - a.exclusionRadius() >= WorldBounds.MIN_X);
             assertTrue(a.x() + a.exclusionRadius() < WorldBounds.MAX_X_EXCLUSIVE);
             assertTrue(a.z() - a.exclusionRadius() >= WorldBounds.MIN_Z);
@@ -38,6 +41,10 @@ class WorldFeaturePlannerTest {
                 assertTrue(dx * dx + dz * dz >= required * required);
             }
         }
+        var harbor = features.stream()
+                .filter(feature -> feature.type() == WorldFeaturePlanner.FeatureType.HARBOR)
+                .findFirst().orElseThrow();
+        assertTrue(island.isNearCoast(harbor.x(), harbor.z(), IslandShape.nearCoastDistance()));
         assertTrue(types.containsAll(Set.of(WorldFeaturePlanner.FeatureType.values())));
     }
 

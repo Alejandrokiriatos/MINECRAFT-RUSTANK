@@ -15,13 +15,16 @@ class ResourceFieldPlannerTest {
     }
 
     @Test
-    void placesRequestedCountInsideMapWithMinimumSpacing() {
+    void placesRequestedCountOnLandWithMinimumSpacing() {
+        long seed = 99L;
         int spacing = 150;
-        List<ResourceFieldPlanner.PlannedDeposit> deposits = ResourceFieldPlanner.plan(99L, 10, spacing);
+        IslandShape island = IslandShape.forSeed(seed);
+        List<ResourceFieldPlanner.PlannedDeposit> deposits = ResourceFieldPlanner.plan(seed, 10, spacing);
         assertEquals(30, deposits.size());
         for (int i = 0; i < deposits.size(); i++) {
             var a = deposits.get(i);
             assertTrue(WorldBounds.contains(a.x(), a.z()));
+            assertTrue(island.isLand(a.x(), a.z()));
             for (int j = i + 1; j < deposits.size(); j++) {
                 var b = deposits.get(j);
                 long dx = (long) a.x() - b.x();
