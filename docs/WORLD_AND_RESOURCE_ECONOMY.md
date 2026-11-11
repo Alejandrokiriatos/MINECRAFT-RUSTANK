@@ -4,10 +4,20 @@
 - Área de juego: 4.000 × 4.000 bloques en X/Z.
 - Coordenadas válidas: -2.000 inclusive a 2.000 exclusive.
 - Franja de 64 bloques reservada en el borde para evitar nodos pegados a la frontera.
-- La semilla del mundo determina la ubicación de los depósitos de forma reproducible.
+- La semilla del mundo determina la ubicación de depósitos y puntos de interés de forma reproducible.
 - La primera distribución usa separación mínima para evitar agrupaciones o solapamientos.
 
 `WorldBounds` implementa la geometría del mapa. Aún falta aplicar el límite a movimiento, teletransporte, portales y generación real del terreno.
+
+## Puntos de interés y sectores
+El primer planificador ubica cinco sectores principales:
+- Spawn de jugadores, cerca del centro.
+- Aeródromo.
+- Puerto.
+- Base militar.
+- Zona radiactiva.
+
+Cada punto tiene un radio de exclusión y una distancia de seguridad adicional para que sus áreas no se solapen. Las ubicaciones son deterministas por semilla. Este planificador solo define coordenadas X/Z: todavía no crea terreno, carreteras, edificios, loot ni radiación dentro de Minecraft.
 
 ## Economía: excavar no debe ser la estrategia principal
 - Piedra, adoquín, pizarra profunda y minerales vanilla no deben entregar materiales Rustank.
@@ -21,14 +31,15 @@
 - Los drops vanilla bloqueados son una barrera adicional; también habrá que revisar recetas, cofres, comercio, aldeanos, generadores y exploits de duplicación.
 
 ## Implementación de esta tanda
+- `WorldFeaturePlanner`: distribución determinista de spawn, aeródromo, puerto, base militar y zona radiactiva, con radios de exclusión y separación.
 - `ResourceDeposit`: reserva finita, reaparición temporizada y snapshot/restauración validada.
 - `ResourceFieldPlanner`: distribución determinista por semilla, dentro del mapa y con distancia mínima.
-- Pruebas unitarias de reservas, reaparición, restauración, determinismo y separación.
-- Todavía no están conectados a bloques, eventos Forge, guardado real del mundo ni HUD; no cambian aún la extracción dentro del juego.
+- Pruebas unitarias de reservas, reaparición, restauración, determinismo, separación y límites.
+- Todavía no están conectados a bloques, eventos Forge, guardado real del mundo ni HUD; no cambian aún la generación ni la extracción dentro del juego.
 
 ## Próximos pasos
-1. Conectar la frontera al servidor y restringir teletransportes/portales.
+1. Aplicar la frontera al servidor y restringir teletransportes/portales.
 2. Persistir los snapshots de depósitos en datos del mundo y validar ubicación contra terreno, monumentos y bases.
 3. Crear bloques/modelos de nodos y herramienta de extracción.
-4. Generar isla, biomas, carreteras y monumentos con semilla estable.
+4. Generar isla, biomas, carreteras y estructuras con semilla estable.
 5. Conectar y probar el sistema completo en un servidor dedicado.
