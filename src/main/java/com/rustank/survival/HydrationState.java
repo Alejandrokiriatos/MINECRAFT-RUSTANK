@@ -34,9 +34,9 @@ public final class HydrationState {
             return false;
         }
 
-        drainProgress++;
         int interval = sprinting ? SPRINT_DRAIN_TICKS : NORMAL_DRAIN_TICKS;
-        if (drainProgress < interval) {
+        if (drainProgress < interval - 1) {
+            drainProgress++;
             return false;
         }
 
@@ -52,6 +52,9 @@ public final class HydrationState {
     /**
      * Restores hydration, clamped to the supported 0..100 range.
      *
+     * <p>The addition is performed as a long to prevent integer overflow when
+     * a malformed or unusually large amount is supplied.</p>
+     *
      * @return true when hydration changed
      */
     public boolean drink(int amount) {
@@ -60,7 +63,7 @@ public final class HydrationState {
         }
 
         int previous = hydration;
-        hydration = Math.min(MAX_HYDRATION, hydration + amount);
+        hydration = (int) Math.min(MAX_HYDRATION, (long) hydration + amount);
         drainProgress = 0;
         return hydration != previous;
     }
