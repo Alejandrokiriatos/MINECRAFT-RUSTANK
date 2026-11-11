@@ -3,7 +3,7 @@
 ## Límites, costa y terreno
 El mapa planeado mide 4.000 × 4.000 bloques: X/Z desde -2.000 inclusive hasta 2.000 exclusive. `IslandShape` define una costa irregular determinista. `TerrainProfile` calcula alturas y categorías ambientales: océano, playa, llanura, bosque, desierto y tierras altas rocosas.
 
-`ChunkTerrainPlan` convierte esas muestras en un plano inmutable de 16 × 16 columnas por chunk. Cada columna contiene coordenadas absolutas, bioma lógico, altura del suelo, material de superficie y nivel superior del agua. El primer perfil usa un lecho marino provisional a Y=48 y agua hasta Y=63. Las columnas que caen fuera del límite de 4.000 × 4.000 quedan marcadas como OUT_OF_BOUNDS y sin material.
+`ChunkTerrainPlan` convierte esas muestras en un plano inmutable de 16 × 16 columnas por chunk. Cada columna contiene coordenadas absolutas, bioma lógico, altura del suelo, material de superficie, profundidad de subsuelo y nivel superior del agua. También ofrece una consulta de material por altura Y: superficie, capa de tierra/arenisca, roca profunda, lecho marino y columna de agua. El primer perfil usa un lecho marino provisional a Y=48 y agua hasta Y=63. Las columnas que caen fuera del límite de 4.000 × 4.000 quedan marcadas como OUT_OF_BOUNDS y sin material.
 
 Este plano es una representación de datos intermedia: todavía no coloca bloques ni modifica chunks de Minecraft.
 

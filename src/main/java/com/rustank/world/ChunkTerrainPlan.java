@@ -30,7 +30,8 @@ public final class ChunkTerrainPlan {
             int surfaceY,
             Material groundMaterial,
             Material surfaceMaterial,
-            int waterTopY
+            int waterTopY,
+            int subsurfaceDepth
     ) {
         public boolean isInsideMap() {
             return biome != TerrainProfile.Biome.OUT_OF_BOUNDS;
@@ -38,6 +39,35 @@ public final class ChunkTerrainPlan {
 
         public boolean hasWater() {
             return waterTopY >= TerrainProfile.SEA_LEVEL;
+        }
+
+        /**
+         * Returns the logical block material at a world Y coordinate.
+         * This is a column blueprint only; a Forge chunk adapter must place it.
+         */
+        public Material materialAtY(int y) {
+            if (!isInsideMap() || y > surfaceY) {
+                return Material.NONE;
+            }
+            if (biome == TerrainProfile.Biome.OCEAN) {
+                if (y > 48) {
+                    return y <= waterTopY ? Material.WATER : Material.NONE;
+                }
+                if (y == 48) {
+                    return Material.SAND;
+                }
+                if (y >= 45) {
+                    return Material.SANDSTONE;
+                }
+                return Material.STONE;
+            }
+            if (y == surfaceY) {
+                return surfaceMaterial;
+            }
+            if (y >= surfaceY - subsurfaceDepth) {
+                return groundMaterial;
+            }
+            return Material.STONE;
         }
     }
 
@@ -71,14 +101,14 @@ public final class ChunkTerrainPlan {
         TerrainProfile.TerrainSample sample = terrain.sample(x, z);
         if (!sample.insideMap()) {
             return new Column(x, z, sample.biome(), 0, 0,
-                    Material.NONE, Material.NONE, -1);
+                    Material.NONE, Material.NONE, -1, 0);
         }
 
         if (sample.biome() == TerrainProfile.Biome.OCEAN) {
             // Initial seabed datum; later terrain passes can add underwater relief.
             int seabed = 48;
             return new Column(x, z, sample.biome(), seabed, TerrainProfile.SEA_LEVEL,
-                    Material.SAND, Material.WATER, TerrainProfile.SEA_LEVEL);
+                    Material.SAND, Material.WATER, TerrainProfile.SEA_LEVEL, 3);
         }
 
         Material surface = switch (sample.biome()) {
@@ -93,8 +123,10 @@ public final class ChunkTerrainPlan {
             case STONE -> Material.STONE;
             default -> Material.NONE;
         };
-        return new Column(x, z, sample.biome(), sample.surfaceHeight() - 1,
-                sample.surfaceHeight(), ground, surface, -1);
+        int subsurfaceDepth = surface == Material.STONE ? 0
+                : 3 + Math.floorMod(x * 31 + z * 17, 3);
+        return new Column(x, z, sample.surfaceHeight() - 1,
+                sample.surfaceHeight(), ground, surface, -1, subsurfaceDepth);
     }
 
     private static int index(int localX, int localZ) {

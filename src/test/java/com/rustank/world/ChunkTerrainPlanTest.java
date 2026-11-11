@@ -33,6 +33,11 @@ class ChunkTerrainPlanTest {
         assertEquals(63, column.waterTopY());
         assertEquals(ChunkTerrainPlan.Material.WATER, column.surfaceMaterial());
         assertEquals(ChunkTerrainPlan.Material.SAND, column.groundMaterial());
+        assertEquals(ChunkTerrainPlan.Material.WATER, column.materialAtY(63));
+        assertEquals(ChunkTerrainPlan.Material.WATER, column.materialAtY(49));
+        assertEquals(ChunkTerrainPlan.Material.SAND, column.materialAtY(48));
+        assertEquals(ChunkTerrainPlan.Material.SANDSTONE, column.materialAtY(47));
+        assertEquals(ChunkTerrainPlan.Material.STONE, column.materialAtY(44));
         assertTrue(column.hasWater());
     }
 
@@ -46,6 +51,11 @@ class ChunkTerrainPlanTest {
                 || center.surfaceMaterial() == ChunkTerrainPlan.Material.SAND
                 || center.surfaceMaterial() == ChunkTerrainPlan.Material.STONE);
         assertEquals(center.surfaceY() - 1, center.groundY());
+        assertEquals(center.surfaceMaterial(), center.materialAtY(center.surfaceY()));
+        assertEquals(center.groundMaterial(), center.materialAtY(center.surfaceY() - 1));
+        assertEquals(ChunkTerrainPlan.Material.STONE,
+                center.materialAtY(center.surfaceY() - center.subsurfaceDepth() - 1));
+        assertEquals(ChunkTerrainPlan.Material.NONE, center.materialAtY(center.surfaceY() + 1));
     }
 
     @Test
