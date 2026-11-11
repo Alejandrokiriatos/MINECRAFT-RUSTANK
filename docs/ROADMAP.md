@@ -9,8 +9,9 @@
 ## Etapa 1 — supervivencia
 - [x] Modelo de dominio de hidratación con drenaje, estados y valores para HUD.
 - [x] Modelo de dominio de hambre con drenaje, estados y valores para HUD.
-- [ ] Conectar hambre y sed al ciclo de vida/tick de jugadores.
-- [ ] Persistencia de hambre y sed entre desconexiones y reinicios.
+- [x] Conectar hambre y sed al tick de jugadores del servidor (incluye sprint y exclusión de creativo/espectador).
+- [x] Persistencia por jugador mediante archivo lateral versionado, sin alterar el .dat vanilla.
+- [ ] Sincronización servidor-cliente y HUD de supervivencia.
 - [ ] Sincronización servidor-cliente y HUD de supervivencia.
 - [ ] Consumo de agua y alimentos dentro del juego.
 - [ ] Penalizaciones graduales por hambre y deshidratación.
@@ -67,3 +68,8 @@ La tarea generateWorldPreview exporta un PNG cenital reproducible del mapa de 4.
 ## Frontera
 
 Al iniciar, el servidor aplica una frontera de 4.000 × 4.000 bloques centrada en (0, 0) en todas las dimensiones. Faltan validaciones específicas para teletransportes, portales y puntos de aparición.
+
+
+## Integración de supervivencia con el servidor
+
+El servidor avanza hambre y sed una vez por tick de jugador. Los intervalos actuales se mantienen en los modelos de dominio y el esprint utiliza sus intervalos rápidos. Los jugadores creativos y espectadores no consumen necesidades. Los valores y los avances parciales de ambos temporizadores se guardan en un archivo lateral por jugador usando los eventos LoadFromFile y SaveToFile de Forge 26.1.2. El archivo tiene firma, versión y validación estricta; se escribe a un temporal antes de sustituir la copia anterior. La interfaz, la sincronización al cliente y los objetos consumibles siguen pendientes.

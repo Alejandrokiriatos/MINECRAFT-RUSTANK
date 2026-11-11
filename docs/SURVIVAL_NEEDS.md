@@ -24,6 +24,14 @@ com.rustank.survival.HydrationState mantiene un rango de 0 a 100, con pérdida c
 
 com.rustank.survival.SurvivalNeedsState reúne hambre e hidratación en un único objeto de dominio por jugador. Su snapshot contiene ambos niveles y los dos temporizadores parciales, y su tick actualiza los dos modelos con una sola llamada. Así se reduce la posibilidad de que el guardado, la sincronización o el futuro HUD utilicen cálculos distintos.
 
+## Integración inicial con Forge
+
+El puente de servidor escucha el tick Post de cada jugador y avanza ambos modelos usando el estado de esprint y el modo de juego. El modo creativo y el espectador quedan excluidos.
+
+Forge 26.1.2 ofrece los eventos PlayerEvent.LoadFromFile y SaveToFile para almacenar datos adicionales en un archivo por jugador. Rustank utiliza un archivo lateral con firma y versión propias, sin modificar el archivo vanilla .dat. La escritura se realiza mediante un archivo temporal y reemplazo atómico cuando el sistema de archivos lo permite. Un archivo ausente crea las necesidades iniciales; un archivo corrupto se registra en el log y utiliza valores seguros.
+
+Esta integración aún no incluye el HUD ni sincronización de datos al cliente. Tampoco añade penalizaciones por llegar a cero.
+
 ## Estado de integración
 
 Ambos modelos son lógica de dominio probada de forma independiente. Todavía no están conectados al ciclo de vida del jugador, guardado persistente, sincronización de red, consumo de objetos vanilla ni HUD. Tampoco aplican aún daño o penalizaciones al llegar a cero. Esos pasos deben implementarse y probarse antes de considerar hambre y sed como sistemas jugables.
