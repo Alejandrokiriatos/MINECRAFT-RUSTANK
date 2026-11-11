@@ -14,11 +14,15 @@
 
 ## Etapa 2 — mundo y economía de recursos
 - [x] Definir el área inicial de mapa de 4.000 × 4.000 bloques.
+- [x] Definir la máscara de costa irregular y el perfil lógico de altura/biomas.
+- [x] Planificar monumentos y depósitos sobre tierra, con exclusiones.
 - [x] Definir reglas para impedir que piedra/minerales vanilla alimenten la economía.
+- [ ] Generar chunks reales a partir del perfil de terreno.
+- [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
 - [ ] Aplicar la frontera en el servidor, teletransportes y portales.
-- [ ] Generación procedural determinista de isla, biomas y sectores.
-- [ ] Nodos de piedra, metal y azufre con reservas y reaparición.
-- [ ] Monumentos, carreteras y zonas de riesgo.
+- [ ] Nodos físicos de piedra, metal y azufre con reservas y reaparición.
+- [ ] Monumentos, carreteras y zonas de riesgo construidos.
+- [ ] Persistencia real de los depósitos con API Forge.
 - [ ] Inventario, loot y contenedores.
 
 ## Etapa 3 — combate
