@@ -1,6 +1,7 @@
 package com.rustank;
 
 import com.rustank.world.WorldBounds;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -19,6 +20,7 @@ public final class RustankMod {
 
     public RustankMod(FMLJavaModLoadingContext context) {
         ServerStartingEvent.BUS.addListener(this::onServerStarting);
+        RegisterCommandsEvent.BUS.addListener(RustankTerrainCommand::register);
         LOGGER.info("Rustank server mod initialized. Minecraft 26.1.2 / Forge 64.1.5");
     }
 

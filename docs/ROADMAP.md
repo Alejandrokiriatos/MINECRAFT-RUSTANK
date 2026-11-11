@@ -19,7 +19,8 @@
 - [x] Definir reglas para impedir que piedra/minerales vanilla alimenten la economía.
 - [x] Planificar vegetación determinista por chunk según bioma y pendiente.
 - [x] Exportar una vista previa PNG reproducible del mapa, puntos de interés y campos de recursos.
-- [ ] Generar chunks reales a partir del perfil de terreno.
+- [ ] Generar chunks automáticamente a partir del perfil de terreno.
+- [x] Añadir comando administrativo `/rustank generate` para materializar el plan lógico en el chunk del jugador (puente manual de primer test; aún no es generación automática).
 - [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
 - [x] Aplicar la frontera vanilla del servidor (4.000 × 4.000) en todas las dimensiones al iniciar.
 - [ ] Reforzar los límites en teletransportes, portales y puntos de aparición.
