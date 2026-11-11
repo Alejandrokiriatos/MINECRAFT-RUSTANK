@@ -1,0 +1,11 @@
+.gradle/
+build/
+run/
+server/world/
+server/logs/
+server/crash-reports/
+*.log
+*.tmp
+.idea/
+.vscode/
+.DS_Store
