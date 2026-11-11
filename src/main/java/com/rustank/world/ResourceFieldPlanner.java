@@ -8,16 +8,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.SplittableRandom;
 
-/**
- * Seed-stable first-pass planner for surface resource fields.
- * Coordinates are reproducible for a given seed and independent of load order.
- */
+/** Seed-stable first-pass planner for surface resource fields. */
 public final class ResourceFieldPlanner {
     public record PlannedDeposit(int x, int z, DepositType type) { }
 
     private static final int MAX_DEPOSITS_PER_TYPE = 1_000;
     private static final int MAX_ATTEMPTS = 2_000_000;
     private static final int FEATURE_CLEARANCE = 48;
+    private static final int MAX_FEATURE_EXCLUSION_RADIUS = 1_000;
 
     private ResourceFieldPlanner() { }
 
@@ -26,9 +24,8 @@ public final class ResourceFieldPlanner {
     }
 
     /**
-     * Plans deposits while keeping them outside major point-of-interest exclusion areas.
-     * The extra clearance keeps resource nodes from appearing directly beside monument
-     * boundaries, roads and spawn activity.
+     * Plans deposits outside the exclusion areas of major points of interest.
+     * A fixed clearance also keeps nodes away from the immediate monument perimeter.
      */
     public static List<PlannedDeposit> plan(long seed, int countPerType, int minSpacing,
                                             List<WorldFeaturePlanner.PlannedFeature> features) {
@@ -39,7 +36,9 @@ public final class ResourceFieldPlanner {
         Objects.requireNonNull(features, "features cannot be null");
         for (WorldFeaturePlanner.PlannedFeature feature : features) {
             Objects.requireNonNull(feature, "feature cannot be null");
-            if (feature.exclusionRadius() < 0 || !WorldBounds.contains(feature.x(), feature.z())) {
+            if (feature.exclusionRadius() < 0
+                    || feature.exclusionRadius() > MAX_FEATURE_EXCLUSION_RADIUS
+                    || !WorldBounds.contains(feature.x(), feature.z())) {
                 throw new IllegalArgumentException("Feature has invalid coordinates or exclusion radius");
             }
         }

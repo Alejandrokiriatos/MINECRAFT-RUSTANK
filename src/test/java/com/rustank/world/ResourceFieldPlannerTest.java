@@ -17,8 +17,7 @@ class ResourceFieldPlannerTest {
     @Test
     void placesRequestedCountInsideMapWithMinimumSpacing() {
         int spacing = 150;
-        List<ResourceFieldPlanner.PlannedDeposit> deposits =
-                ResourceFieldPlanner.plan(99L, 10, spacing);
+        List<ResourceFieldPlanner.PlannedDeposit> deposits = ResourceFieldPlanner.plan(99L, 10, spacing);
         assertEquals(30, deposits.size());
         for (int i = 0; i < deposits.size(); i++) {
             var a = deposits.get(i);
@@ -36,7 +35,7 @@ class ResourceFieldPlannerTest {
     }
 
     @Test
-    void keepsDepositsOutsideMonumentAndSpawnExclusionAreas() {
+    void keepsDepositsOutsideEveryFeatureExclusionArea() {
         long seed = 20261111L;
         var features = WorldFeaturePlanner.plan(seed);
         var deposits = ResourceFieldPlanner.plan(seed, 20, 100, features);
@@ -54,7 +53,7 @@ class ResourceFieldPlannerTest {
     }
 
     @Test
-    void rejectsInvalidPlannerParametersAndFeatureLists() {
+    void rejectsInvalidPlannerParametersAndFeatureDefinitions() {
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, -1, 10));
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1_001, 10));
@@ -62,5 +61,8 @@ class ResourceFieldPlannerTest {
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1, 10,
                 List.of(new WorldFeaturePlanner.PlannedFeature(
                         WorldFeaturePlanner.FeatureType.HARBOR, 2000, 0, 170))));
+        assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1, 10,
+                List.of(new WorldFeaturePlanner.PlannedFeature(
+                        WorldFeaturePlanner.FeatureType.HARBOR, 0, 0, Integer.MAX_VALUE))));
     }
 }
