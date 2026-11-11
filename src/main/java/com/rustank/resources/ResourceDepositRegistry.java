@@ -37,9 +37,17 @@ public final class ResourceDepositRegistry {
   return registry;
  }
  public int size(){return deposits.size();}
- public int remainingAt(int x,int z){ResourceDeposit d=deposits.get(new DepositKey(x,z));return d==null?0:d.remaining();}
- public int harvestAt(int x,int z,int requested,long currentTick){ResourceDeposit d=deposits.get(new DepositKey(x,z));return d==null?0:d.harvest(requested,currentTick);}
- public int tick(long currentTick){int restored=0;for(ResourceDeposit d:deposits.values())if(d.tick(currentTick))restored++;return restored;}
+ public boolean containsAt(int x,int z){return WorldBounds.contains(x,z)&&deposits.containsKey(new DepositKey(x,z));}
+ public DepositType typeAt(int x,int z){ResourceDeposit d=WorldBounds.contains(x,z)?deposits.get(new DepositKey(x,z)):null;return d==null?null:d.type();}
+ public int remainingAt(int x,int z){ResourceDeposit d=WorldBounds.contains(x,z)?deposits.get(new DepositKey(x,z)):null;return d==null?0:d.remaining();}
+ /** Out-of-map coordinates and unregistered positions can never yield resources. */
+ public int harvestAt(int x,int z,int requested,long currentTick){
+  if(!WorldBounds.contains(x,z)||requested<=0||currentTick<0)return 0;
+  ResourceDeposit d=deposits.get(new DepositKey(x,z));return d==null?0:d.harvest(requested,currentTick);
+ }
+ /** Advances all respawn timers; returns the number of deposits restored this tick. */
+ public int tick(long currentTick){if(currentTick<0)return 0;int restored=0;for(ResourceDeposit d:deposits.values())if(d.tick(currentTick))restored++;return restored;}
+ /** Stable ordering makes serialized snapshots and tests deterministic. */
  public List<EntrySnapshot> snapshot(){
   List<EntrySnapshot> result=new ArrayList<>(deposits.size());
   deposits.forEach((key,d)->result.add(new EntrySnapshot(key.x(),key.z(),d.snapshot())));
