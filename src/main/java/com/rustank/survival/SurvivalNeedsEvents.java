@@ -15,10 +15,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Forge event bridge for the server-authoritative per-player hunger and thirst.
+ * Forge event bridge for server-authoritative hunger and hydration.
  *
- * <p>PlayerEvent.LoadFromFile and SaveToFile provide a dedicated sidecar file
- * per player. The main player .dat file is never modified.</p>
+ * <p>PlayerEvent.LoadFromFile and SaveToFile provide a sidecar file per player.
+ * Login also loads the file for brand-new vanilla player records, and logout
+ * saves before Forge removes the player from its live player list.</p>
  */
 public final class SurvivalNeedsEvents {
     private static final Logger LOGGER = LoggerFactory.getLogger("rustank");
@@ -39,32 +40,15 @@ public final class SurvivalNeedsEvents {
 
     private static void onPlayerLoad(PlayerEvent.LoadFromFile event) {
         UUID playerId = event.getEntity().getUUID();
-        SurvivalNeedsState state = new SurvivalNeedsState();
         Path playerFile = event.getPlayerFile(PLAYER_FILE_SUFFIX).toPath();
-
-        try {
-            Optional<SurvivalNeedsState.Snapshot> saved = SurvivalNeedsPersistence.load(playerFile);
-            saved.ifPresent(state::restore);
-        } catch (IOException exception) {
-            LOGGER.warn("Could not load Rustank survival needs for player {}. Safe defaults will be used.",
-                    playerId, exception);
-        }
-
-        STATES.put(playerId, state);
+        STATES.put(playerId, readState(playerId, playerFile));
     }
 
     private static void onPlayerSave(PlayerEvent.SaveToFile event) {
         UUID playerId = event.getEntity().getUUID();
         SurvivalNeedsState state = STATES.get(playerId);
-        if (state == null) {
-            return;
-        }
-
-        Path playerFile = event.getPlayerFile(PLAYER_FILE_SUFFIX).toPath();
-        try {
-            SurvivalNeedsPersistence.save(playerFile, state.snapshot());
-        } catch (IOException exception) {
-            LOGGER.error("Could not save Rustank survival needs for player {}.", playerId, exception);
+        if (state != null) {
+            saveState(playerId, event.getPlayerFile(PLAYER_FILE_SUFFIX).toPath(), state);
         }
     }
 
@@ -79,10 +63,28 @@ public final class SurvivalNeedsEvents {
     }
 
     private static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        STATES.computeIfAbsent(event.getEntity().getUUID(), ignored -> new SurvivalNeedsState());
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        STATES.computeIfAbsent(player.getUUID(), ignored ->
+                readState(player.getUUID(), playerDataPath(player)));
     }
 
+    /**
+     * Forge fires PlayerLoggedOutEvent before PlayerList saves/removes the
+     * player. Save while the ServerPlayer still has access to PlayerDataStorage.
+     */
     private static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            UUID playerId = player.getUUID();
+            SurvivalNeedsState state = STATES.get(playerId);
+            if (state == null || saveState(playerId, playerDataPath(player), state)) {
+                STATES.remove(playerId);
+            }
+            return;
+        }
+
         STATES.remove(event.getEntity().getUUID());
     }
 
@@ -91,6 +93,39 @@ public final class SurvivalNeedsEvents {
         SurvivalNeedsState oldState = STATES.get(oldId);
         if (oldState != null) {
             STATES.put(event.getEntity().getUUID(), oldState);
+        }
+    }
+
+    /**
+     * Forge exposes the player data directory through PlayerList#getPlayerIo.
+     * Using this path covers first-time players for whom LoadFromFile is not
+     * fired because no vanilla .dat record exists yet.
+     */
+    private static Path playerDataPath(ServerPlayer player) {
+        return player.serverLevel().getServer().getPlayerList().getPlayerIo()
+                .getPlayerDataFolder().toPath()
+                .resolve(player.getStringUUID() + "." + PLAYER_FILE_SUFFIX);
+    }
+
+    private static SurvivalNeedsState readState(UUID playerId, Path file) {
+        SurvivalNeedsState state = new SurvivalNeedsState();
+        try {
+            Optional<SurvivalNeedsState.Snapshot> saved = SurvivalNeedsPersistence.load(file);
+            saved.ifPresent(state::restore);
+        } catch (IOException exception) {
+            LOGGER.warn("Could not load Rustank survival needs for player {}. Safe defaults will be used.",
+                    playerId, exception);
+        }
+        return state;
+    }
+
+    private static boolean saveState(UUID playerId, Path file, SurvivalNeedsState state) {
+        try {
+            SurvivalNeedsPersistence.save(file, state.snapshot());
+            return true;
+        } catch (IOException exception) {
+            LOGGER.error("Could not save Rustank survival needs for player {}.", playerId, exception);
+            return false;
         }
     }
 }
