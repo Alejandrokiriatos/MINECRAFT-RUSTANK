@@ -44,6 +44,26 @@ class TerrainProfileTest {
     }
 
     @Test
+    void oceanFloorHasDeterministicBoundedReliefBelowSeaLevel() {
+        var first = TerrainProfile.forSeed(42L);
+        var second = TerrainProfile.forSeed(42L);
+        int minimum = Integer.MAX_VALUE;
+        int maximum = Integer.MIN_VALUE;
+        for (int x = -1_900; x <= 1_900; x += 137) {
+            for (int z = -1_900; z <= 1_900; z += 137) {
+                if (first.sample(x, z).biome() != TerrainProfile.Biome.OCEAN) continue;
+                int height = first.oceanFloorHeight(x, z);
+                assertEquals(height, second.oceanFloorHeight(x, z));
+                assertTrue(height >= 30 && height <= 50);
+                assertTrue(height < TerrainProfile.SEA_LEVEL);
+                minimum = Math.min(minimum, height);
+                maximum = Math.max(maximum, height);
+            }
+        }
+        assertTrue(maximum > minimum, "ocean floor should not be perfectly flat");
+    }
+
+    @Test
     void coastlineIsClassifiedAsBeachAndInlandIsNot() {
         var terrain = TerrainProfile.forSeed(99L);
         var island = IslandShape.forSeed(99L);

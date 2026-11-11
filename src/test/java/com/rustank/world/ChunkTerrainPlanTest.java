@@ -29,15 +29,15 @@ class ChunkTerrainPlanTest {
         var plan = ChunkTerrainPlan.create(42L, 124, 124);
         var column = plan.column(15, 15);
         assertEquals(TerrainProfile.Biome.OCEAN, column.biome());
-        assertEquals(48, column.groundY());
+        assertTrue(column.groundY() >= 30 && column.groundY() <= 50);
         assertEquals(63, column.waterTopY());
         assertEquals(ChunkTerrainPlan.Material.WATER, column.surfaceMaterial());
         assertEquals(ChunkTerrainPlan.Material.SAND, column.groundMaterial());
         assertEquals(ChunkTerrainPlan.Material.WATER, column.materialAtY(63));
-        assertEquals(ChunkTerrainPlan.Material.WATER, column.materialAtY(49));
-        assertEquals(ChunkTerrainPlan.Material.SAND, column.materialAtY(48));
-        assertEquals(ChunkTerrainPlan.Material.SANDSTONE, column.materialAtY(47));
-        assertEquals(ChunkTerrainPlan.Material.STONE, column.materialAtY(44));
+        assertEquals(ChunkTerrainPlan.Material.WATER, column.materialAtY(column.groundY() + 1));
+        assertEquals(ChunkTerrainPlan.Material.SAND, column.materialAtY(column.groundY()));
+        assertEquals(ChunkTerrainPlan.Material.SANDSTONE, column.materialAtY(column.groundY() - 1));
+        assertEquals(ChunkTerrainPlan.Material.STONE, column.materialAtY(column.groundY() - 4));
         assertTrue(column.hasWater());
     }
 

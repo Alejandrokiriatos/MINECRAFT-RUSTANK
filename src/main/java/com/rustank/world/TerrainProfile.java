@@ -36,6 +36,17 @@ public final class TerrainProfile {
         return new TerrainProfile(seed);
     }
 
+    /** Deterministic ocean-floor elevation with broad shelves and local relief. */
+    public int oceanFloorHeight(int x, int z) {
+        if (!WorldBounds.contains(x, z)) {
+            throw new IllegalArgumentException("Ocean floor coordinates must be inside the Rustank map");
+        }
+        double broad = valueNoise(x, z, 310, 0x0CE4L);
+        double detail = valueNoise(x, z, 95, 0x5EAFL);
+        int height = 41 + (int) Math.round(broad * 6.0 + detail * 3.0);
+        return Math.max(30, Math.min(50, height));
+    }
+
     public TerrainSample sample(int x, int z) {
         if (!WorldBounds.contains(x, z)) {
             return new TerrainSample(false, Biome.OUT_OF_BOUNDS, SEA_LEVEL, false);

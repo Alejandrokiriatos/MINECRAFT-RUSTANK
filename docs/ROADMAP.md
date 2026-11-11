@@ -68,3 +68,8 @@ La vista previa ahora dibuja depósitos superficiales planificados de piedra, me
 ## Frontera inicial del servidor
 
 Al arrancar el servidor, Rustank configura la frontera vanilla en todas las dimensiones con centro (0, 0), diámetro de 4.000 bloques y aviso a 16 bloques del borde. Esto restringe el desplazamiento normal de los jugadores y mantiene alineada la frontera visible con el área de diseño. La generación de terreno, los teletransportes y los portales aún necesitan validaciones propias antes de considerar el mapa completamente cerrado.
+
+
+## Relieve submarino
+
+El plano vertical calcula ahora un lecho marino determinista con variación de gran escala y detalle local. La profundidad queda entre Y=30 y Y=50, bajo el nivel del mar Y=63, con arena en el fondo, tres capas lógicas de arenisca y roca más profunda. Los tests verifican reproducibilidad, variación y cobertura de agua. Sigue siendo un plano lógico pendiente de conexión al generador real de chunks.

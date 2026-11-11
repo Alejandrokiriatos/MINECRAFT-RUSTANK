@@ -50,15 +50,11 @@ public final class ChunkTerrainPlan {
                 return Material.NONE;
             }
             if (biome == TerrainProfile.Biome.OCEAN) {
-                if (y > 48) {
+                if (y > groundY) {
                     return y <= waterTopY ? Material.WATER : Material.NONE;
                 }
-                if (y == 48) {
-                    return Material.SAND;
-                }
-                if (y >= 45) {
-                    return Material.SANDSTONE;
-                }
+                if (y == groundY) return Material.SAND;
+                if (y >= groundY - 3) return Material.SANDSTONE;
                 return Material.STONE;
             }
             if (y == surfaceY) {
@@ -105,8 +101,7 @@ public final class ChunkTerrainPlan {
         }
 
         if (sample.biome() == TerrainProfile.Biome.OCEAN) {
-            // Initial seabed datum; later terrain passes can add underwater relief.
-            int seabed = 48;
+            int seabed = terrain.oceanFloorHeight(x, z);
             return new Column(x, z, sample.biome(), seabed, TerrainProfile.SEA_LEVEL,
                     Material.SAND, Material.WATER, TerrainProfile.SEA_LEVEL, 3);
         }
