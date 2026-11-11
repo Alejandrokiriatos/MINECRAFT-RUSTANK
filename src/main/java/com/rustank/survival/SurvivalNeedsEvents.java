@@ -102,7 +102,7 @@ public final class SurvivalNeedsEvents {
      * fired because no vanilla .dat record exists yet.
      */
     private static Path playerDataPath(ServerPlayer player) {
-        return player.serverLevel().getServer().getPlayerList().getPlayerIo()
+        return player.level().getServer().getPlayerList().getPlayerIo()
                 .getPlayerDataFolder().toPath()
                 .resolve(player.getStringUUID() + "." + PLAYER_FILE_SUFFIX);
     }
