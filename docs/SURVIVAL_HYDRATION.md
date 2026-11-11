@@ -1,28 +1,32 @@
-# Survival system: hydration
+# Sistema de supervivencia: hidratación
 
-## Implemented core
+## Núcleo implementado
 
-The first survival-domain component is `com.rustank.survival.HydrationState`.
+El primer componente del dominio de supervivencia es `com.rustank.survival.HydrationState`.
 
-- Hydration is represented on a 0–100 scale.
-- Normal activity drains one point every 1,200 server ticks (60 seconds at 20 TPS).
-- Sprinting drains one point every 600 server ticks (30 seconds at 20 TPS).
-- Drinking restores a configurable amount and never exceeds 100.
-- Loading persisted values clamps them to the valid range.
-- Creative and spectator players do not drain hydration.
-- The model has no client or Minecraft dependencies, so its rules remain independent of HUD rendering and player networking.
+- Hidratación de 0 a 100.
+- Actividad normal: pierde 1 punto cada 1.200 ticks de servidor (60 segundos a 20 TPS).
+- Esprintar: pierde 1 punto cada 600 ticks (30 segundos a 20 TPS).
+- Beber restaura una cantidad configurable, sin superar 100.
+- La suma al beber está protegida frente a desbordamientos de enteros.
+- Beber reinicia el reloj de drenaje para evitar perder hidratación inmediatamente después de consumir agua.
+- Al cargar un valor persistido, se limita al rango válido.
+- Creativo y espectador no consumen hidratación ni avanzan el reloj.
+- La hidratación nunca baja de cero.
+- El modelo no depende de clases Minecraft ni del cliente; puede probarse aisladamente.
 
-## Automated verification
+## Verificación automatizada
 
-`HydrationStateTest` exercises normal and sprint drain intervals, creative/spectator exclusion, drink clamping, persisted-value clamping, and the zero-hydration floor. The GitHub Actions build runs these tests as part of `gradle build`.
+`HydrationStateTest` comprueba drenaje normal y al esprintar, exclusión de creativo/espectador, límites al beber, importes extremos, reinicio del reloj al beber, límites al cargar y el suelo de cero. GitHub Actions ejecuta estas pruebas con `gradle build`.
 
-## Not yet wired into gameplay
+## Estado de integración en juego
 
-This is the domain model, not yet the complete player feature. The next integration work is to attach it to server-side player lifecycle/tick events, persist it with player data, synchronize values to clients, and render the HUD. Dehydration penalties will be added only after those foundations are in place.
+Este es todavía el modelo de dominio, no una característica ya conectada al jugador. Falta integrar el ciclo de vida/tick del servidor, persistencia en datos del jugador, sincronización al cliente y HUD. Las penalizaciones por deshidratación se añadirán después de establecer esas bases.
 
-## Initial balance values
+## Balance provisional
 
-These are development defaults and will be tuned during in-game tests:
-- Normal: 1 hydration/minute.
-- Sprinting: 2 hydration/minute.
-- Maximum hydration: 100.
+- Normal: 1 punto por minuto.
+- Esprintando: 2 puntos por minuto.
+- Máximo: 100.
+
+Son valores iniciales de desarrollo; se ajustarán durante pruebas reales.
