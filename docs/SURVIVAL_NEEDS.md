@@ -10,7 +10,7 @@ com.rustank.survival.HungerState es un modelo de dominio sin dependencias de Min
 - Comer restaura una cantidad configurable, limitada a 100 y reinicia el reloj.
 - Creativo y espectador no consumen hambre ni avanzan el reloj.
 - Estados: satisfecho (>30), hambriento (11–30), inanición (1–10) y vacío (0).
-- Expone una fracción 0..1 para el futuro HUD.
+- Expone una fracción 0..1 para el HUD.
 - Su snapshot conserva el nivel y el avance parcial del temporizador.
 
 ## Modelo de hidratación
@@ -30,17 +30,16 @@ com.rustank.survival.SurvivalNeedsState reúne hambre e hidratación en un únic
 
 ## Integración con Forge 26.1.2
 
-El puente SurvivalNeedsEvents ya está registrado desde RustankMod:
+SurvivalNeedsEvents procesa el tick Post del jugador en el servidor, usa el estado real de esprint y excluye creativo/espectador. Carga y guarda un archivo lateral por UUID a través de LoadFromFile/SaveToFile y también guarda al desconectarse. El archivo tiene firma, versión y validación estricta; no modifica el .dat vanilla. La escritura usa archivo temporal y reemplazo atómico.
 
-- Escucha el tick Post del jugador en el lado servidor.
-- Utiliza el estado real de esprint y excluye creativo/espectador.
-- Carga datos de PlayerEvent.LoadFromFile cuando existe un registro vanilla anterior.
-- Para jugadores nuevos, carga también al entrar mediante la ruta de datos del servidor.
-- Guarda durante PlayerEvent.SaveToFile y vuelve a guardar directamente durante PlayerLoggedOutEvent, antes de que Forge retire al jugador de la lista.
-- Conserva la caché en memoria si la escritura de desconexión falla, en lugar de descartarla silenciosamente.
+## Sincronización y HUD
 
-Los datos se guardan en un archivo lateral por jugador con firma y versión propias (<uuid>.rustank-needs). No se modifica el archivo vanilla .dat. La escritura usa un archivo temporal y reemplazo atómico cuando el sistema de archivos lo permite. Un archivo ausente crea los valores iniciales; uno corrupto se registra en el log y utiliza valores seguros.
+SurvivalNeedsNetwork registra un canal de juego versionado y exclusivamente clientbound. El servidor envía un snapshot al entrar y cuando cambia hambre o sed. El paquete contiene solo dos enteros acotados entre 0 y 100. No existe un paquete de cliente a servidor que permita modificar necesidades.
+
+SurvivalNeedsClient registra una capa en el sistema de capas del HUD de Forge. Muestra barras para HAMBRE y SED. El HUD presenta valores recibidos del servidor; el drenaje y el guardado siguen siendo autoritativos en servidor.
 
 ## Pendiente para completar la supervivencia jugable
 
-La simulación y el guardado son autoritativos en servidor, pero todavía faltan la sincronización al cliente, el HUD, los objetos consumibles de agua y comida y las penalizaciones al llegar a cero. Los umbrales e intervalos son valores de balance inicial y se ajustarán con pruebas reales.
+- Integrar comida y agua como objetos consumibles.
+- Aplicar penalizaciones graduales al llegar a cero.
+- Ajustar intervalos y umbrales con pruebas de juego reales.

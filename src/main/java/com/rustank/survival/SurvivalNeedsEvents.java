@@ -59,7 +59,9 @@ public final class SurvivalNeedsEvents {
 
         SurvivalNeedsState state = STATES.computeIfAbsent(
                 player.getUUID(), ignored -> new SurvivalNeedsState());
-        state.tick(player.isSprinting(), player.isCreative() || player.isSpectator());
+        if (state.tick(player.isSprinting(), player.isCreative() || player.isSpectator())) {
+            SurvivalNeedsNetwork.sync(player, state);
+        }
     }
 
     private static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -67,8 +69,9 @@ public final class SurvivalNeedsEvents {
             return;
         }
 
-        STATES.computeIfAbsent(player.getUUID(), ignored ->
+        SurvivalNeedsState state = STATES.computeIfAbsent(player.getUUID(), ignored ->
                 readState(player.getUUID(), playerDataPath(player)));
+        SurvivalNeedsNetwork.sync(player, state);
     }
 
     /**
@@ -93,6 +96,9 @@ public final class SurvivalNeedsEvents {
         SurvivalNeedsState oldState = STATES.get(oldId);
         if (oldState != null) {
             STATES.put(event.getEntity().getUUID(), oldState);
+            if (event.getEntity() instanceof ServerPlayer newPlayer) {
+                SurvivalNeedsNetwork.sync(newPlayer, oldState);
+            }
         }
     }
 

@@ -4,15 +4,15 @@
 - [x] Crear proyecto Forge para Minecraft 26.1.2.
 - [x] Fijar Forge 64.1.5 y Java 25.
 - [x] Validar la compilación base en CI.
-- [x] Añadir smoke test automatizado de arranque del servidor dedicado en CI (pendiente validar el nuevo workflow).
+- [x] Añadir smoke test automatizado de arranque del servidor dedicado en CI.
 
 ## Etapa 1 — supervivencia
 - [x] Modelo de dominio de hidratación con drenaje, estados y valores para HUD.
 - [x] Modelo de dominio de hambre con drenaje, estados y valores para HUD.
 - [x] Conectar hambre y sed al tick de jugadores del servidor (incluye sprint y exclusión de creativo/espectador).
 - [x] Persistencia por jugador mediante archivo lateral versionado, sin alterar el .dat vanilla.
-- [ ] Sincronización servidor-cliente y HUD de supervivencia.
-- [ ] Sincronización servidor-cliente y HUD de supervivencia.
+- [x] Sincronización servidor-cliente de hambre y sed mediante canal Forge versionado.
+- [x] HUD de hambre y sed mediante capa del HUD de Forge.
 - [ ] Consumo de agua y alimentos dentro del juego.
 - [ ] Penalizaciones graduales por hambre y deshidratación.
 - [ ] Temperatura, heridas, sangrado y curación.
@@ -57,19 +57,10 @@
 
 El mapa inicial está definido como un área de 4.000 × 4.000 bloques, con frontera vanilla aplicada al arrancar. El terreno, los monumentos y los recursos cuentan con planificadores deterministas y una vista previa PNG, pero la generación dentro del mundo sigue siendo un comando manual por chunk. El servidor no debe anunciarse como un Rust jugable hasta completar el generador real, los sistemas de recursos, la supervivencia y el combate.
 
-## Plano vertical y vegetación
-
-El modelo lógico de chunks calcula materiales por altura Y, costa, perfil de terreno y lecho submarino. El comando /rustank generate materializa el plano del chunk del jugador, junto con árboles, arbustos y cactus deterministas. Este puente sirve para pruebas controladas; no sustituye todavía al generador automático.
-
-## Vista previa y economía
-
-La tarea generateWorldPreview exporta un PNG cenital reproducible del mapa de 4.000 × 4.000 bloques. Incluye biomas, puntos de interés y marcadores de depósitos superficiales de piedra, metal y azufre. Estos marcadores son planificación visual: todavía no representan nodos minables persistidos en Minecraft.
-
-## Frontera
-
-Al iniciar, el servidor aplica una frontera de 4.000 × 4.000 bloques centrada en (0, 0) en todas las dimensiones. Faltan validaciones específicas para teletransportes, portales y puntos de aparición.
-
-
 ## Integración de supervivencia con el servidor
 
-El servidor avanza hambre y sed una vez por tick de jugador. Los intervalos actuales se mantienen en los modelos de dominio y el esprint utiliza sus intervalos rápidos. Los jugadores creativos y espectadores no consumen necesidades. Los valores y los avances parciales de ambos temporizadores se guardan en un archivo lateral por jugador usando los eventos LoadFromFile y SaveToFile de Forge 26.1.2. El archivo tiene firma, versión y validación estricta; se escribe a un temporal antes de sustituir la copia anterior. La interfaz, la sincronización al cliente y los objetos consumibles siguen pendientes.
+El servidor avanza hambre y sed una vez por tick de jugador. El esprint utiliza los intervalos rápidos, y creativo/espectador quedan excluidos. Los niveles y temporizadores parciales se guardan en archivos laterales por jugador, con formato versionado. Un canal Forge de juego, exclusivamente clientbound y versionado, sincroniza los niveles al entrar y cada vez que cambia una necesidad. El cliente muestra dos barras de HAMBRE y SED en una capa del HUD. Los objetos consumibles y las penalizaciones por llegar a cero siguen pendientes.
+
+## Plano de terreno
+
+El modelo lógico de chunks calcula materiales por altura Y, costa, perfil de terreno y lecho submarino. El comando administrativo /rustank generate materializa el plano del chunk del jugador junto con árboles, arbustos y cactus deterministas. La tarea generateWorldPreview exporta un PNG cenital reproducible del mapa y sus marcadores de monumentos y recursos. La generación automática de chunks, los depósitos minables dentro del mundo y los monumentos construidos siguen pendientes.
