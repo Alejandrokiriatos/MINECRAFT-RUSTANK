@@ -1,0 +1,11 @@
+modLoader="javafml"
+loaderVersion="[64,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="rustank"
+version="0.1.0"
+displayName="Rustank"
+description='''
+A multiplayer survival PvP experience inspired by Rust.
+'''
