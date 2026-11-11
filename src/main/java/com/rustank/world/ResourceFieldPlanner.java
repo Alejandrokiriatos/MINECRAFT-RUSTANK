@@ -14,16 +14,22 @@ import java.util.SplittableRandom;
 public final class ResourceFieldPlanner {
     public record PlannedDeposit(int x, int z, DepositType type) { }
 
+    private static final int MAX_DEPOSITS_PER_TYPE = 1_000;
+    private static final int MAX_ATTEMPTS = 2_000_000;
+
     private ResourceFieldPlanner() { }
 
     public static List<PlannedDeposit> plan(long seed, int countPerType, int minSpacing) {
-        if (countPerType < 0) throw new IllegalArgumentException("countPerType cannot be negative");
+        if (countPerType < 0 || countPerType > MAX_DEPOSITS_PER_TYPE) {
+            throw new IllegalArgumentException("countPerType must be between 0 and " + MAX_DEPOSITS_PER_TYPE);
+        }
         if (minSpacing < 1) throw new IllegalArgumentException("minSpacing must be positive");
 
         SplittableRandom random = new SplittableRandom(seed);
         List<PlannedDeposit> result = new ArrayList<>();
         long spacingSquared = (long) minSpacing * minSpacing;
-        int attempts = Math.max(100, countPerType * DepositType.values().length * 100);
+        long requestedAttempts = Math.max(100L, (long) countPerType * DepositType.values().length * 100L);
+        int attempts = (int) Math.min(MAX_ATTEMPTS, requestedAttempts);
 
         for (DepositType type : DepositType.values()) {
             int placed = 0;

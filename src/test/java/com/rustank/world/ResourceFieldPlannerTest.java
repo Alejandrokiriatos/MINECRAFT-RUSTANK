@@ -39,5 +39,6 @@ class ResourceFieldPlannerTest {
     void rejectsInvalidPlannerParameters() {
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, -1, 10));
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1, 0));
+        assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1_001, 10));
     }
 }
