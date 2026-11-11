@@ -79,6 +79,24 @@ class HydrationStateTest {
     }
 
     @Test
+    void conditionChangesAtDocumentedHydrationThresholds() {
+        HydrationState state = new HydrationState();
+        assertEquals(HydrationState.Condition.HYDRATED, state.getCondition());
+        assertEquals(1.0f, state.getHudFraction());
+
+        state.loadHydration(25);
+        assertEquals(HydrationState.Condition.THIRSTY, state.getCondition());
+        assertEquals(0.25f, state.getHudFraction());
+
+        state.loadHydration(10);
+        assertEquals(HydrationState.Condition.SEVERELY_THIRSTY, state.getCondition());
+
+        state.loadHydration(0);
+        assertEquals(HydrationState.Condition.DEHYDRATED, state.getCondition());
+        assertEquals(0.0f, state.getHudFraction());
+    }
+
+    @Test
     void hydrationNeverDropsBelowZero() {
         HydrationState state = new HydrationState();
         state.loadHydration(1);
