@@ -13,6 +13,8 @@ public final class HydrationState {
     public static final int NORMAL_DRAIN_TICKS = 1_200; // 60 seconds at 20 TPS
     public static final int SPRINT_DRAIN_TICKS = 600;   // 30 seconds at 20 TPS
 
+    public record Snapshot(int hydration, int drainProgress) { }
+
     public enum Condition {
         HYDRATED,
         THIRSTY,
@@ -40,6 +42,22 @@ public final class HydrationState {
     /** A normalized 0..1 value suitable for HUD rendering. */
     public float getHudFraction() {
         return hydration / (float) MAX_HYDRATION;
+    }
+
+    /** Captures both the need value and its partial drain interval for persistence. */
+    public Snapshot snapshot() {
+        return new Snapshot(hydration, drainProgress);
+    }
+
+    /**
+     * Restores a snapshot, clamping malformed persisted values to safe bounds.
+     */
+    public void restore(Snapshot snapshot) {
+        if (snapshot == null) {
+            throw new IllegalArgumentException("snapshot cannot be null");
+        }
+        hydration = Math.max(MIN_HYDRATION, Math.min(MAX_HYDRATION, snapshot.hydration()));
+        drainProgress = Math.max(0, Math.min(NORMAL_DRAIN_TICKS - 1, snapshot.drainProgress()));
     }
 
     public int getHydration() {

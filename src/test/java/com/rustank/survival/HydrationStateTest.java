@@ -97,6 +97,33 @@ class HydrationStateTest {
     }
 
     @Test
+    void snapshotRestoresHydrationAndPartialDrainProgress() {
+        HydrationState original = new HydrationState();
+        original.loadHydration(70);
+        for (int i = 0; i < 400; i++) {
+            assertFalse(original.tick(false, false));
+        }
+
+        HydrationState restored = new HydrationState();
+        restored.restore(original.snapshot());
+        for (int i = 0; i < HydrationState.NORMAL_DRAIN_TICKS - 401; i++) {
+            assertFalse(restored.tick(false, false));
+        }
+        assertTrue(restored.tick(false, false));
+        assertEquals(69, restored.getHydration());
+    }
+
+    @Test
+    void restoreClampsMalformedSnapshotFields() {
+        HydrationState state = new HydrationState();
+        state.restore(new HydrationState.Snapshot(150, Integer.MAX_VALUE));
+        assertEquals(100, state.getHydration());
+        assertEquals(1.0f, state.getHudFraction());
+        assertTrue(state.tick(false, false));
+        assertEquals(99, state.getHydration());
+    }
+
+    @Test
     void hydrationNeverDropsBelowZero() {
         HydrationState state = new HydrationState();
         state.loadHydration(1);

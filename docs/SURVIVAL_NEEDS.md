@@ -14,10 +14,11 @@ com.rustank.survival.HungerState es un modelo de dominio sin dependencias de Min
 - La suma al comer usa un valor de 64 bits para evitar desbordamiento.
 - Estados: satisfecho (>30), hambriento (11–30), inanición (1–10) y vacío (0).
 - Expone una fracción 0..1 para el futuro HUD.
+- Su snapshot conserva tanto el nivel de hambre como el avance parcial del temporizador, para que un guardado futuro no reinicie gratis el drenaje.
 
 ## Modelo de hidratación
 
-com.rustank.survival.HydrationState mantiene un rango de 0 a 100, con pérdida cada 60 segundos a ritmo normal y cada 30 segundos al esprintar. Sus estados son hidratado (>25), sediento (11–25), sed severa (1–10) y deshidratado (0).
+com.rustank.survival.HydrationState mantiene un rango de 0 a 100, con pérdida cada 60 segundos a ritmo normal y cada 30 segundos al esprintar. Sus estados son hidratado (>25), sediento (11–25), sed severa (1–10) y deshidratado (0). Su snapshot también conserva el avance parcial del temporizador.
 
 ## Estado de integración
 

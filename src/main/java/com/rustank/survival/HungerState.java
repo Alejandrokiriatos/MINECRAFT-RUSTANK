@@ -13,6 +13,8 @@ public final class HungerState {
     public static final int NORMAL_DRAIN_TICKS = 1_800; // 90 seconds at 20 TPS
     public static final int SPRINT_DRAIN_TICKS = 900;   // 45 seconds at 20 TPS
 
+    public record Snapshot(int hunger, int drainProgress) { }
+
     public enum Condition {
         SATISFIED,
         HUNGRY,
@@ -22,6 +24,20 @@ public final class HungerState {
 
     private int hunger = MAX_HUNGER;
     private int drainProgress;
+
+    /** Captures both the need value and its partial drain interval for persistence. */
+    public Snapshot snapshot() {
+        return new Snapshot(hunger, drainProgress);
+    }
+
+    /** Restores a snapshot, clamping malformed persisted values to safe bounds. */
+    public void restore(Snapshot snapshot) {
+        if (snapshot == null) {
+            throw new IllegalArgumentException("snapshot cannot be null");
+        }
+        hunger = Math.max(MIN_HUNGER, Math.min(MAX_HUNGER, snapshot.hunger()));
+        drainProgress = Math.max(0, Math.min(NORMAL_DRAIN_TICKS - 1, snapshot.drainProgress()));
+    }
 
     public int getHunger() {
         return hunger;

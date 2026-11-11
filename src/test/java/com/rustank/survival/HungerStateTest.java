@@ -98,6 +98,33 @@ class HungerStateTest {
     }
 
     @Test
+    void snapshotRestoresHungerAndPartialDrainProgress() {
+        HungerState original = new HungerState();
+        original.loadHunger(70);
+        for (int i = 0; i < 800; i++) {
+            assertFalse(original.tick(false, false));
+        }
+
+        HungerState restored = new HungerState();
+        restored.restore(original.snapshot());
+        for (int i = 0; i < HungerState.NORMAL_DRAIN_TICKS - 801; i++) {
+            assertFalse(restored.tick(false, false));
+        }
+        assertTrue(restored.tick(false, false));
+        assertEquals(69, restored.getHunger());
+    }
+
+    @Test
+    void restoreClampsMalformedSnapshotFields() {
+        HungerState state = new HungerState();
+        state.restore(new HungerState.Snapshot(150, Integer.MAX_VALUE));
+        assertEquals(100, state.getHunger());
+        assertEquals(1.0f, state.getHudFraction());
+        assertTrue(state.tick(false, false));
+        assertEquals(99, state.getHunger());
+    }
+
+    @Test
     void hungerNeverDropsBelowZero() {
         HungerState state = new HungerState();
         state.loadHunger(1);
