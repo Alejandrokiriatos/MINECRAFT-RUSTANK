@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle' version '7.0.23'
+}
+
+group = 'com.rustank'
+version = '0.1.0'
+base {
+    archivesName = 'rustank'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        register('server') {
+            args '--nogui'
+            workingDir = file('run/server')
+        }
+    }
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+}
