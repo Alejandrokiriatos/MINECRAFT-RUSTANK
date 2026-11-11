@@ -125,7 +125,7 @@ public final class ChunkTerrainPlan {
         };
         int subsurfaceDepth = surface == Material.STONE ? 0
                 : 3 + Math.floorMod(x * 31 + z * 17, 3);
-        return new Column(x, z, sample.surfaceHeight() - 1,
+        return new Column(x, z, sample.biome(), sample.surfaceHeight() - 1,
                 sample.surfaceHeight(), ground, surface, -1, subsurfaceDepth);
     }
 
