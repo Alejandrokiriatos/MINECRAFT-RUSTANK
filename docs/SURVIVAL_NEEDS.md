@@ -20,6 +20,10 @@ com.rustank.survival.HungerState es un modelo de dominio sin dependencias de Min
 
 com.rustank.survival.HydrationState mantiene un rango de 0 a 100, con pérdida cada 60 segundos a ritmo normal y cada 30 segundos al esprintar. Sus estados son hidratado (>25), sediento (11–25), sed severa (1–10) y deshidratado (0). Su snapshot también conserva el avance parcial del temporizador.
 
+## Estado combinado por jugador
+
+com.rustank.survival.SurvivalNeedsState reúne hambre e hidratación en un único objeto de dominio por jugador. Su snapshot contiene ambos niveles y los dos temporizadores parciales, y su tick actualiza los dos modelos con una sola llamada. Así se reduce la posibilidad de que el guardado, la sincronización o el futuro HUD utilicen cálculos distintos.
+
 ## Estado de integración
 
 Ambos modelos son lógica de dominio probada de forma independiente. Todavía no están conectados al ciclo de vida del jugador, guardado persistente, sincronización de red, consumo de objetos vanilla ni HUD. Tampoco aplican aún daño o penalizaciones al llegar a cero. Esos pasos deben implementarse y probarse antes de considerar hambre y sed como sistemas jugables.
