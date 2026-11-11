@@ -12,6 +12,10 @@ The first survival-domain component is `com.rustank.survival.HydrationState`.
 - Creative and spectator players do not drain hydration.
 - The model has no client or Minecraft dependencies, so its rules remain independent of HUD rendering and player networking.
 
+## Automated verification
+
+`HydrationStateTest` exercises normal and sprint drain intervals, creative/spectator exclusion, drink clamping, persisted-value clamping, and the zero-hydration floor. The GitHub Actions build runs these tests as part of `gradle build`.
+
 ## Not yet wired into gameplay
 
 This is the domain model, not yet the complete player feature. The next integration work is to attach it to server-side player lifecycle/tick events, persist it with player data, synchronize values to clients, and render the HUD. Dehydration penalties will be added only after those foundations are in place.
