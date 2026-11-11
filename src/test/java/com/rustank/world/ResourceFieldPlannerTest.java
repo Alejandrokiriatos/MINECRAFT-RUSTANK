@@ -36,9 +36,31 @@ class ResourceFieldPlannerTest {
     }
 
     @Test
-    void rejectsInvalidPlannerParameters() {
+    void keepsDepositsOutsideMonumentAndSpawnExclusionAreas() {
+        long seed = 20261111L;
+        var features = WorldFeaturePlanner.plan(seed);
+        var deposits = ResourceFieldPlanner.plan(seed, 20, 100, features);
+
+        assertEquals(60, deposits.size());
+        for (var deposit : deposits) {
+            for (var feature : features) {
+                long dx = (long) deposit.x() - feature.x();
+                long dz = (long) deposit.z() - feature.z();
+                long required = (long) feature.exclusionRadius() + 48;
+                assertTrue(dx * dx + dz * dz >= required * required,
+                        () -> deposit + " overlaps exclusion area of " + feature.type());
+            }
+        }
+    }
+
+    @Test
+    void rejectsInvalidPlannerParametersAndFeatureLists() {
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, -1, 10));
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1_001, 10));
+        assertThrows(NullPointerException.class, () -> ResourceFieldPlanner.plan(1, 1, 10, null));
+        assertThrows(IllegalArgumentException.class, () -> ResourceFieldPlanner.plan(1, 1, 10,
+                List.of(new WorldFeaturePlanner.PlannedFeature(
+                        WorldFeaturePlanner.FeatureType.HARBOR, 2000, 0, 170))));
     }
 }

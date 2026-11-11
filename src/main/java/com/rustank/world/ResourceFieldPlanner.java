@@ -5,6 +5,7 @@ import com.rustank.resources.DepositType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.SplittableRandom;
 
 /**
@@ -16,14 +17,32 @@ public final class ResourceFieldPlanner {
 
     private static final int MAX_DEPOSITS_PER_TYPE = 1_000;
     private static final int MAX_ATTEMPTS = 2_000_000;
+    private static final int FEATURE_CLEARANCE = 48;
 
     private ResourceFieldPlanner() { }
 
     public static List<PlannedDeposit> plan(long seed, int countPerType, int minSpacing) {
+        return plan(seed, countPerType, minSpacing, List.of());
+    }
+
+    /**
+     * Plans deposits while keeping them outside major point-of-interest exclusion areas.
+     * The extra clearance keeps resource nodes from appearing directly beside monument
+     * boundaries, roads and spawn activity.
+     */
+    public static List<PlannedDeposit> plan(long seed, int countPerType, int minSpacing,
+                                            List<WorldFeaturePlanner.PlannedFeature> features) {
         if (countPerType < 0 || countPerType > MAX_DEPOSITS_PER_TYPE) {
             throw new IllegalArgumentException("countPerType must be between 0 and " + MAX_DEPOSITS_PER_TYPE);
         }
         if (minSpacing < 1) throw new IllegalArgumentException("minSpacing must be positive");
+        Objects.requireNonNull(features, "features cannot be null");
+        for (WorldFeaturePlanner.PlannedFeature feature : features) {
+            Objects.requireNonNull(feature, "feature cannot be null");
+            if (feature.exclusionRadius() < 0 || !WorldBounds.contains(feature.x(), feature.z())) {
+                throw new IllegalArgumentException("Feature has invalid coordinates or exclusion radius");
+            }
+        }
 
         SplittableRandom random = new SplittableRandom(seed);
         List<PlannedDeposit> result = new ArrayList<>();
@@ -36,25 +55,35 @@ public final class ResourceFieldPlanner {
             for (int attempt = 0; attempt < attempts && placed < countPerType; attempt++) {
                 int x = random.nextInt(WorldBounds.MIN_X + 64, WorldBounds.MAX_X_EXCLUSIVE - 64);
                 int z = random.nextInt(WorldBounds.MIN_Z + 64, WorldBounds.MAX_Z_EXCLUSIVE - 64);
-                if (!WorldBounds.contains(x, z)) continue;
-                boolean clear = true;
-                for (PlannedDeposit existing : result) {
-                    long dx = (long) x - existing.x();
-                    long dz = (long) z - existing.z();
-                    if (dx * dx + dz * dz < spacingSquared) {
-                        clear = false;
-                        break;
-                    }
-                }
-                if (clear) {
-                    result.add(new PlannedDeposit(x, z, type));
-                    placed++;
-                }
+                if (!WorldBounds.contains(x, z) || conflictsWithFeature(features, x, z)
+                        || conflictsWithDeposit(result, x, z, spacingSquared)) continue;
+                result.add(new PlannedDeposit(x, z, type));
+                placed++;
             }
             if (placed != countPerType) {
                 throw new IllegalStateException("Unable to place requested deposits; reduce count or spacing");
             }
         }
         return Collections.unmodifiableList(result);
+    }
+
+    private static boolean conflictsWithFeature(List<WorldFeaturePlanner.PlannedFeature> features, int x, int z) {
+        for (WorldFeaturePlanner.PlannedFeature feature : features) {
+            long dx = (long) x - feature.x();
+            long dz = (long) z - feature.z();
+            long required = (long) feature.exclusionRadius() + FEATURE_CLEARANCE;
+            if (dx * dx + dz * dz < required * required) return true;
+        }
+        return false;
+    }
+
+    private static boolean conflictsWithDeposit(List<PlannedDeposit> deposits, int x, int z,
+                                                long spacingSquared) {
+        for (PlannedDeposit existing : deposits) {
+            long dx = (long) x - existing.x();
+            long dz = (long) z - existing.z();
+            if (dx * dx + dz * dz < spacingSquared) return true;
+        }
+        return false;
     }
 }
