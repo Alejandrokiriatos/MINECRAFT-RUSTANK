@@ -21,7 +21,8 @@
 - [x] Exportar una vista previa PNG reproducible del mapa, puntos de interés y campos de recursos.
 - [ ] Generar chunks reales a partir del perfil de terreno.
 - [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
-- [ ] Aplicar la frontera en el servidor, teletransportes y portales.
+- [x] Aplicar la frontera vanilla del servidor (4.000 × 4.000) en todas las dimensiones al iniciar.
+- [ ] Reforzar los límites en teletransportes, portales y puntos de aparición.
 - [ ] Nodos físicos de piedra, metal y azufre con reservas y reaparición.
 - [ ] Monumentos, carreteras y zonas de riesgo construidos.
 - [ ] Persistencia real de los depósitos con API Forge.
@@ -62,3 +63,8 @@ El proyecto puede exportar un PNG cenital de 1.000 × 1.000 píxeles que represe
 ## Distribución de recursos en la vista previa
 
 La vista previa ahora dibuja depósitos superficiales planificados de piedra, metal y azufre, respetando las zonas de exclusión de los monumentos y la separación mínima entre depósitos. Los puntos usan símbolos de color para distinguir cada recurso. Son marcadores de diseño: todavía no son bloques minables ni reservas persistidas dentro del mundo.
+
+
+## Frontera inicial del servidor
+
+Al arrancar el servidor, Rustank configura la frontera vanilla en todas las dimensiones con centro (0, 0), diámetro de 4.000 bloques y aviso a 16 bloques del borde. Esto restringe el desplazamiento normal de los jugadores y mantiene alineada la frontera visible con el área de diseño. La generación de terreno, los teletransportes y los portales aún necesitan validaciones propias antes de considerar el mapa completamente cerrado.
