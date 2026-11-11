@@ -40,3 +40,12 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.register('generateWorldPreview', JavaExec) {
+    group = 'rustank'
+    description = 'Generates a top-down PNG preview of the planned Rustank island.'
+    dependsOn tasks.named('classes')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.rustank.world.WorldPreviewGenerator'
+    def previewSeed = providers.gradleProperty('previewSeed').getOrElse('20261111')
+    args layout.buildDirectory.file('reports/rustank-world-preview.png').get().asFile.absolutePath, previewSeed
+}

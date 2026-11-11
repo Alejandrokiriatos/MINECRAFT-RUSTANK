@@ -32,12 +32,19 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Build Forge mod
-        run: gradle build --no-daemon
+      - name: Build Forge mod and generate world preview
+        run: gradle build generateWorldPreview --no-daemon
 
       - name: Upload mod JAR
         uses: actions/upload-artifact@v4
         with:
           name: rustank-forge-26.1.2
           path: build/libs/*.jar
+          if-no-files-found: error
+
+      - name: Upload world preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustank-world-preview
+          path: build/reports/rustank-world-preview.png
           if-no-files-found: error

@@ -18,6 +18,7 @@
 - [x] Planificar monumentos y depósitos sobre tierra, con exclusiones.
 - [x] Definir reglas para impedir que piedra/minerales vanilla alimenten la economía.
 - [x] Planificar vegetación determinista por chunk según bioma y pendiente.
+- [x] Exportar una vista previa PNG reproducible del mapa y sus puntos de interés.
 - [ ] Generar chunks reales a partir del perfil de terreno.
 - [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
 - [ ] Aplicar la frontera en el servidor, teletransportes y portales.
@@ -46,12 +47,14 @@
 - [ ] Moderación, reglas, backups y recuperación.
 - [ ] Despliegue público y guía de conexión.
 
-
 ## Estado añadido: plano vertical de chunks
 
 El modelo lógico de chunks ya puede describir materiales por altura Y: superficie, 3–5 capas de tierra o arenisca según el terreno, roca profunda, lecho marino y agua hasta el nivel del mar. Los chunks se recortan en los límites de la isla. La implementación sigue siendo un plano de datos y todavía no coloca bloques en Minecraft; la integración con el generador Forge 64.1.5 sigue pendiente.
 
-
 ## Vegetación lógica por chunk
 
 Se añadió un planificador determinista de árboles, arbustos y cactus. La distribución se ancla a una cuadrícula global para evitar duplicados al consultar chunks vecinos. Respeta biomas, límites de mapa y pendientes. Falta convertir estas ubicaciones en estructuras/bloques reales durante la generación de chunks.
+
+## Vista previa reproducible del mundo
+
+El proyecto puede exportar un PNG cenital de 1.000 × 1.000 píxeles que representa el mapa de 4.000 × 4.000 bloques, con biomas y círculos de exclusión/ubicaciones de los cinco puntos de interés. La tarea `generateWorldPreview` genera el archivo en `build/reports/rustank-world-preview.png`; CI lo publica como artefacto descargable. Es una herramienta de inspección del diseño, no un mapa Minecraft jugable.
