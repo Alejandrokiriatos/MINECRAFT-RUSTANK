@@ -46,7 +46,7 @@ jobs:
           server_status=$?
           set -e
           cat server-smoke.log
-          if grep -Eq 'Done \\(' server-smoke.log; then
+          if grep -Eq 'Done \\(' server-smoke.log && grep -q 'Rustank map boundary enabled' server-smoke.log; then
             echo 'Dedicated Forge server reached the ready state.'
           else
             echo "Dedicated server did not reach ready state (exit $server_status)."
