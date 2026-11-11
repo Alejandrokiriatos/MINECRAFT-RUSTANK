@@ -1,0 +1,14 @@
+# Plantilla inicial. Ajustar antes de publicar el servidor.
+motd=RUSTANK | Survival PvP
+server-port=25565
+online-mode=true
+white-list=true
+enforce-whitelist=true
+max-players=40
+view-distance=8
+simulation-distance=6
+difficulty=normal
+gamemode=survival
+pvp=true
+spawn-protection=0
+enable-command-block=false
