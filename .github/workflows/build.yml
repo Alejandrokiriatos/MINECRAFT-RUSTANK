@@ -41,27 +41,46 @@ jobs:
           mkdir -p run/server
           printf '%s\n' 'eula=true' > run/server/eula.txt
           printf '%s\n' 'online-mode=false' 'server-port=25575' 'level-name=rustank-smoke-world' > run/server/server.properties
-          gradle runServer --no-daemon --console=plain > server-smoke.log 2>&1 &
+          setsid gradle runServer --no-daemon --console=plain > server-smoke.log 2>&1 &
           server_pid=$!
+          server_pgid=$server_pid
+          ready=0
+
           stop_server() {
-            kill -INT "$server_pid" 2>/dev/null || true
+            kill -INT -- "-$server_pgid" 2>/dev/null || true
+            for attempt in $(seq 1 15); do
+              if ! kill -0 -- "-$server_pgid" 2>/dev/null; then
+                break
+              fi
+              sleep 1
+            done
+            kill -TERM -- "-$server_pgid" 2>/dev/null || true
+            sleep 1
+            kill -KILL -- "-$server_pgid" 2>/dev/null || true
             wait "$server_pid" 2>/dev/null || true
           }
           trap stop_server EXIT
+
           for attempt in $(seq 1 90); do
             if grep -Fq 'Done (' server-smoke.log && grep -Fq 'Rustank map boundary enabled' server-smoke.log; then
-              echo 'Dedicated Forge server started and Rustank initialized successfully.'
-              stop_server
-              trap - EXIT
-              cat server-smoke.log
-              exit 0
+              ready=1
+              break
             fi
             if ! kill -0 "$server_pid" 2>/dev/null; then
               break
             fi
             sleep 2
           done
+
+          stop_server
+          trap - EXIT
           cat server-smoke.log
+
+          if [ "$ready" -eq 1 ]; then
+            echo 'Dedicated Forge server started and Rustank initialized successfully.'
+            exit 0
+          fi
+
           echo 'Dedicated server did not reach the ready state with Rustank initialized.'
           exit 1
 
