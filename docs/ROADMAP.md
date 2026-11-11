@@ -3,7 +3,7 @@
 ## Etapa 0 — infraestructura
 - [x] Crear proyecto Forge para Minecraft 26.1.2.
 - [x] Fijar Forge 64.1.5 y Java 25.
-- [ ] Validar la primera compilación en CI.
+- [x] Validar la compilación base en CI.
 - [ ] Ejecutar un servidor dedicado de prueba.
 
 ## Etapa 1 — supervivencia
@@ -12,10 +12,14 @@
 - [ ] Persistencia de atributos entre reinicios.
 - [ ] HUD de supervivencia.
 
-## Etapa 2 — recursos y economía
-- [ ] Madera, piedra, metal, azufre y componentes.
-- [ ] Recolección, nodos y loot.
-- [ ] Inventario y contenedores.
+## Etapa 2 — mundo y economía de recursos
+- [x] Definir el área inicial de mapa de 4.000 × 4.000 bloques.
+- [x] Definir reglas para impedir que piedra/minerales vanilla alimenten la economía.
+- [ ] Aplicar la frontera en el servidor, teletransportes y portales.
+- [ ] Generación procedural determinista de isla, biomas y sectores.
+- [ ] Nodos de piedra, metal y azufre con reservas y reaparición.
+- [ ] Monumentos, carreteras y zonas de riesgo.
+- [ ] Inventario, loot y contenedores.
 
 ## Etapa 3 — combate
 - [ ] Armas, munición, recarga y retroceso.
@@ -27,8 +31,7 @@
 - [ ] Cerraduras, códigos y permisos.
 - [ ] Explosivos y daño estructural.
 
-## Etapa 5 — mundo y contenido
-- [ ] Monumentos y zonas especiales.
+## Etapa 5 — contenido vivo
 - [ ] NPC, científicos y animales.
 - [ ] Drops y eventos dinámicos.
 
