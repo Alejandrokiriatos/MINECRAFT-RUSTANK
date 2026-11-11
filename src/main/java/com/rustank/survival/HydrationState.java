@@ -13,8 +13,34 @@ public final class HydrationState {
     public static final int NORMAL_DRAIN_TICKS = 1_200; // 60 seconds at 20 TPS
     public static final int SPRINT_DRAIN_TICKS = 600;   // 30 seconds at 20 TPS
 
+    public enum Condition {
+        HYDRATED,
+        THIRSTY,
+        SEVERELY_THIRSTY,
+        DEHYDRATED
+    }
+
     private int hydration = MAX_HYDRATION;
     private int drainProgress;
+
+    /** Returns the gameplay condition for the current hydration level. */
+    public Condition getCondition() {
+        if (hydration == MIN_HYDRATION) {
+            return Condition.DEHYDRATED;
+        }
+        if (hydration <= 10) {
+            return Condition.SEVERELY_THIRSTY;
+        }
+        if (hydration <= 25) {
+            return Condition.THIRSTY;
+        }
+        return Condition.HYDRATED;
+    }
+
+    /** A normalized 0..1 value suitable for HUD rendering. */
+    public float getHudFraction() {
+        return hydration / (float) MAX_HYDRATION;
+    }
 
     public int getHydration() {
         return hydration;
