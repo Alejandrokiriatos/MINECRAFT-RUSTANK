@@ -1,5 +1,7 @@
 package com.rustank.world;
 
+import com.rustank.resources.DepositType;
+
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -35,7 +37,15 @@ public final class WorldPreviewGenerator {
         try {
             graphics.setColor(new Color(245, 245, 235));
             graphics.drawRect(0, 0, width - 1, height - 1);
-            for (WorldFeaturePlanner.PlannedFeature feature : WorldFeaturePlanner.plan(seed)) {
+            List<WorldFeaturePlanner.PlannedFeature> features = WorldFeaturePlanner.plan(seed);
+            for (ResourceFieldPlanner.PlannedDeposit deposit :
+                    ResourceFieldPlanner.plan(seed, 100, 36, features)) {
+                graphics.setColor(depositColor(deposit.type()));
+                int px = toPixelX(deposit.x(), width);
+                int py = toPixelZ(deposit.z(), height);
+                graphics.fillOval(px - 2, py - 2, 5, 5);
+            }
+            for (WorldFeaturePlanner.PlannedFeature feature : features) {
                 int px = toPixelX(feature.x(), width);
                 int py = toPixelZ(feature.z(), height);
                 int radius = Math.max(4, (int) Math.round(
@@ -76,6 +86,14 @@ public final class WorldPreviewGenerator {
                 (int) Math.min(255, base.getRed() * factor),
                 (int) Math.min(255, base.getGreen() * factor),
                 (int) Math.min(255, base.getBlue() * factor));
+    }
+
+    private static Color depositColor(DepositType type) {
+        return switch (type) {
+            case STONE -> new Color(230, 230, 230);
+            case METAL -> new Color(190, 110, 55);
+            case SULFUR -> new Color(255, 220, 35);
+        };
     }
 
     private static Color featureColor(WorldFeaturePlanner.FeatureType type) {

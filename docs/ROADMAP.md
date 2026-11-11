@@ -18,7 +18,7 @@
 - [x] Planificar monumentos y depósitos sobre tierra, con exclusiones.
 - [x] Definir reglas para impedir que piedra/minerales vanilla alimenten la economía.
 - [x] Planificar vegetación determinista por chunk según bioma y pendiente.
-- [x] Exportar una vista previa PNG reproducible del mapa y sus puntos de interés.
+- [x] Exportar una vista previa PNG reproducible del mapa, puntos de interés y campos de recursos.
 - [ ] Generar chunks reales a partir del perfil de terreno.
 - [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
 - [ ] Aplicar la frontera en el servidor, teletransportes y portales.
@@ -58,3 +58,7 @@ Se añadió un planificador determinista de árboles, arbustos y cactus. La dist
 ## Vista previa reproducible del mundo
 
 El proyecto puede exportar un PNG cenital de 1.000 × 1.000 píxeles que representa el mapa de 4.000 × 4.000 bloques, con biomas y círculos de exclusión/ubicaciones de los cinco puntos de interés. La tarea `generateWorldPreview` genera el archivo en `build/reports/rustank-world-preview.png`; CI lo publica como artefacto descargable. Es una herramienta de inspección del diseño, no un mapa Minecraft jugable.
+
+## Distribución de recursos en la vista previa
+
+La vista previa ahora dibuja depósitos superficiales planificados de piedra, metal y azufre, respetando las zonas de exclusión de los monumentos y la separación mínima entre depósitos. Los puntos usan símbolos de color para distinguir cada recurso. Son marcadores de diseño: todavía no son bloques minables ni reservas persistidas dentro del mundo.
