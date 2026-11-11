@@ -44,3 +44,8 @@
 - [ ] Protección contra griefing, exploits y abuso.
 - [ ] Moderación, reglas, backups y recuperación.
 - [ ] Despliegue público y guía de conexión.
+
+
+## Estado añadido: plano vertical de chunks
+
+El modelo lógico de chunks ya puede describir materiales por altura Y: superficie, 3–5 capas de tierra o arenisca según el terreno, roca profunda, lecho marino y agua hasta el nivel del mar. Los chunks se recortan en los límites de la isla. La implementación sigue siendo un plano de datos y todavía no coloca bloques en Minecraft; la integración con el generador Forge 64.1.5 sigue pendiente.
