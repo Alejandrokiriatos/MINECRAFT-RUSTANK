@@ -45,6 +45,30 @@ class HydrationStateTest {
     }
 
     @Test
+    void veryLargeDrinkAmountCannotOverflow() {
+        HydrationState state = new HydrationState();
+        state.loadHydration(50);
+        assertTrue(state.drink(Integer.MAX_VALUE));
+        assertEquals(100, state.getHydration());
+    }
+
+    @Test
+    void drinkingResetsTheDrainClock() {
+        HydrationState state = new HydrationState();
+        state.loadHydration(50);
+        for (int i = 0; i < HydrationState.NORMAL_DRAIN_TICKS - 1; i++) {
+            assertFalse(state.tick(false, false));
+        }
+        assertTrue(state.drink(10));
+        for (int i = 0; i < HydrationState.NORMAL_DRAIN_TICKS - 1; i++) {
+            assertFalse(state.tick(false, false));
+        }
+        assertEquals(60, state.getHydration());
+        assertTrue(state.tick(false, false));
+        assertEquals(59, state.getHydration());
+    }
+
+    @Test
     void loadingClampsValuesToValidRange() {
         HydrationState state = new HydrationState();
         state.loadHydration(150);
