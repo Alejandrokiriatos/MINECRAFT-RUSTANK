@@ -3,7 +3,6 @@ package com.rustank;
 import com.rustank.world.WorldBounds;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.border.WorldBorder;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -19,7 +18,7 @@ public final class RustankMod {
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public RustankMod(FMLJavaModLoadingContext context) {
-        MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
+        ServerStartingEvent.BUS.addListener(this::onServerStarting);
         LOGGER.info("Rustank server mod initialized. Minecraft 26.1.2 / Forge 64.1.5");
     }
 
@@ -29,9 +28,9 @@ public final class RustankMod {
      * players from simply walking out of the 4,000 by 4,000 play area.
      */
     private void onServerStarting(ServerStartingEvent event) {
-        double centerX = (WorldBounds.MIN_X + WorldBounds.MAX_EXCLUSIVE) / 2.0;
-        double centerZ = (WorldBounds.MIN_Z + WorldBounds.MAX_EXCLUSIVE) / 2.0;
-        double diameter = WorldBounds.MAX_EXCLUSIVE - WorldBounds.MIN_X;
+        double centerX = (WorldBounds.MIN_X + WorldBounds.MAX_X_EXCLUSIVE) / 2.0;
+        double centerZ = (WorldBounds.MIN_Z + WorldBounds.MAX_Z_EXCLUSIVE) / 2.0;
+        double diameter = WorldBounds.MAX_X_EXCLUSIVE - WorldBounds.MIN_X;
 
         for (ServerLevel level : event.getServer().getAllLevels()) {
             WorldBorder border = level.getWorldBorder();
