@@ -34,4 +34,34 @@ class ResourceDepositTest {
         assertEquals(0, deposit.harvest(-5, 0));
         assertEquals(DepositType.SULFUR.capacity(), deposit.remaining());
     }
+
+    @Test
+    void snapshotPreservesPartialStockAndDepletionTimer() {
+        ResourceDeposit active = new ResourceDeposit(DepositType.STONE);
+        active.harvest(125, 50);
+        ResourceDeposit restoredActive = ResourceDeposit.restore(active.snapshot());
+        assertEquals(DepositType.STONE, restoredActive.type());
+        assertEquals(775, restoredActive.remaining());
+        assertEquals(-1L, restoredActive.respawnAtTick());
+
+        ResourceDeposit depleted = new ResourceDeposit(DepositType.SULFUR);
+        depleted.harvest(Integer.MAX_VALUE, 500);
+        ResourceDeposit restoredDepleted = ResourceDeposit.restore(depleted.snapshot());
+        assertTrue(restoredDepleted.depleted());
+        assertEquals(depleted.respawnAtTick(), restoredDepleted.respawnAtTick());
+        assertFalse(restoredDepleted.tick(depleted.respawnAtTick() - 1));
+        assertTrue(restoredDepleted.tick(depleted.respawnAtTick()));
+    }
+
+    @Test
+    void rejectsCorruptSnapshots() {
+        assertThrows(IllegalArgumentException.class,
+                () -> ResourceDeposit.restore(new ResourceDeposit.Snapshot("STONE", -1, -1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> ResourceDeposit.restore(new ResourceDeposit.Snapshot("STONE", 0, -1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> ResourceDeposit.restore(new ResourceDeposit.Snapshot("STONE", 10, 99)));
+        assertThrows(IllegalArgumentException.class,
+                () -> ResourceDeposit.restore(new ResourceDeposit.Snapshot("UNKNOWN", 1, -1)));
+    }
 }

@@ -1,10 +1,11 @@
 package com.rustank.resources;
 
 /**
- * Server-owned finite deposit stock. All time is expressed in server ticks.
- * A depleted deposit starts one respawn timer; it cannot be harvested while empty.
+ * Server-owned finite deposit stock. All time is expressed in world ticks.
  */
 public final class ResourceDeposit {
+    public record Snapshot(String type, int remaining, long respawnAtTick) { }
+
     private final DepositType type;
     private int remaining;
     private long respawnAtTick = -1L;
@@ -13,6 +14,12 @@ public final class ResourceDeposit {
         if (type == null) throw new IllegalArgumentException("type cannot be null");
         this.type = type;
         this.remaining = type.capacity();
+    }
+
+    private ResourceDeposit(DepositType type, int remaining, long respawnAtTick) {
+        this.type = type;
+        this.remaining = remaining;
+        this.respawnAtTick = respawnAtTick;
     }
 
     public DepositType type() { return type; }
@@ -40,4 +47,32 @@ public final class ResourceDeposit {
     }
 
     public long respawnAtTick() { return respawnAtTick; }
+
+    public Snapshot snapshot() {
+        return new Snapshot(type.name(), remaining, respawnAtTick);
+    }
+
+    /**
+     * Restores validated world data. Invalid or obsolete values fail closed rather
+     * than creating extra stock or an immediately respawning deposit.
+     */
+    public static ResourceDeposit restore(Snapshot snapshot) {
+        if (snapshot == null) throw new IllegalArgumentException("snapshot cannot be null");
+        final DepositType type;
+        try {
+            type = DepositType.valueOf(snapshot.type());
+        } catch (RuntimeException exception) {
+            throw new IllegalArgumentException("Unknown deposit type", exception);
+        }
+        if (snapshot.remaining() < 0 || snapshot.remaining() > type.capacity()) {
+            throw new IllegalArgumentException("Deposit stock outside allowed range");
+        }
+        if (snapshot.remaining() == 0 && snapshot.respawnAtTick() < 0) {
+            throw new IllegalArgumentException("Depleted deposit requires a respawn tick");
+        }
+        if (snapshot.remaining() > 0 && snapshot.respawnAtTick() != -1L) {
+            throw new IllegalArgumentException("Active deposit cannot have a respawn timer");
+        }
+        return new ResourceDeposit(type, snapshot.remaining(), snapshot.respawnAtTick());
+    }
 }
