@@ -75,6 +75,22 @@ class ChunkTerrainPlanTest {
     }
 
     @Test
+    void soilAndSandstoneDepthsStayWithinConfiguredRange() {
+        var plan = ChunkTerrainPlan.create(987654321L, 2, -3);
+        for (var column : plan.columns()) {
+            if (column.biome() == TerrainProfile.Biome.PLAINS
+                    || column.biome() == TerrainProfile.Biome.FOREST
+                    || column.biome() == TerrainProfile.Biome.BEACH
+                    || column.biome() == TerrainProfile.Biome.DESERT) {
+                assertTrue(column.subsurfaceDepth() >= 3);
+                assertTrue(column.subsurfaceDepth() <= 5);
+                assertEquals(column.groundMaterial(),
+                        column.materialAtY(column.surfaceY() - column.subsurfaceDepth()));
+            }
+        }
+    }
+
+    @Test
     void rejectsChunkCoordinateOverflowAndInvalidLocalCoordinates() {
         assertThrows(ArithmeticException.class,
                 () -> ChunkTerrainPlan.create(1L, Integer.MAX_VALUE, 0));
