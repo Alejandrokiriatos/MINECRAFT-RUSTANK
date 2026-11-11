@@ -35,6 +35,24 @@ jobs:
       - name: Build Forge mod and generate world preview
         run: gradle build generateWorldPreview --no-daemon
 
+      - name: Smoke test dedicated Forge server
+        shell: bash
+        run: |
+          mkdir -p run/server
+          printf 'eula=true\\n' > run/server/eula.txt
+          printf 'online-mode=false\\nserver-port=25575\\nlevel-name=rustank-smoke-world\\n' > run/server/server.properties
+          set +e
+          timeout 240s gradle runServer --no-daemon --console=plain > server-smoke.log 2>&1
+          server_status=$?
+          set -e
+          cat server-smoke.log
+          if grep -Eq 'Done \\(' server-smoke.log; then
+            echo 'Dedicated Forge server reached the ready state.'
+          else
+            echo "Dedicated server did not reach ready state (exit $server_status)."
+            exit 1
+          fi
+
       - name: Upload mod JAR
         uses: actions/upload-artifact@v4
         with:

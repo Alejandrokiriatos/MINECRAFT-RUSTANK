@@ -4,7 +4,7 @@
 - [x] Crear proyecto Forge para Minecraft 26.1.2.
 - [x] Fijar Forge 64.1.5 y Java 25.
 - [x] Validar la compilación base en CI.
-- [ ] Ejecutar un servidor dedicado de prueba.
+- [x] Añadir smoke test automatizado de arranque del servidor dedicado en CI (pendiente validar el nuevo workflow).
 
 ## Etapa 1 — supervivencia
 - [ ] Sed, hambre y temperatura.
@@ -20,7 +20,7 @@
 - [x] Planificar vegetación determinista por chunk según bioma y pendiente.
 - [x] Exportar una vista previa PNG reproducible del mapa, puntos de interés y campos de recursos.
 - [ ] Generar chunks automáticamente a partir del perfil de terreno.
-- [x] Añadir comando administrativo `/rustank generate` para materializar el plan lógico en el chunk del jugador (puente manual de primer test; aún no es generación automática).
+- [x] Añadir comando administrativo `/rustank generate` para materializar terreno y vegetación en el chunk del jugador (puente manual; aún no es generación automática).
 - [ ] Registrar biomas y configurar océano, playas y terreno en Minecraft.
 - [x] Aplicar la frontera vanilla del servidor (4.000 × 4.000) en todas las dimensiones al iniciar.
 - [ ] Reforzar los límites en teletransportes, portales y puntos de aparición.
@@ -51,11 +51,11 @@
 
 ## Estado añadido: plano vertical de chunks
 
-El modelo lógico de chunks ya puede describir materiales por altura Y: superficie, 3–5 capas de tierra o arenisca según el terreno, roca profunda, lecho marino y agua hasta el nivel del mar. Los chunks se recortan en los límites de la isla. La implementación sigue siendo un plano de datos y todavía no coloca bloques en Minecraft; la integración con el generador Forge 64.1.5 sigue pendiente.
+El modelo lógico de chunks describe materiales por altura Y: superficie, capas de tierra o arenisca, roca profunda, lecho marino y agua hasta el nivel del mar. El comando `/rustank generate` ya consume ese plano y coloca bloques en el chunk del jugador, respetando el límite del mapa. La integración sigue siendo manual y localizada; no sustituye todavía al generador automático de chunks.
 
 ## Vegetación lógica por chunk
 
-Se añadió un planificador determinista de árboles, arbustos y cactus. La distribución se ancla a una cuadrícula global para evitar duplicados al consultar chunks vecinos. Respeta biomas, límites de mapa y pendientes. Falta convertir estas ubicaciones en estructuras/bloques reales durante la generación de chunks.
+Se añadió un planificador determinista de árboles, arbustos y cactus. La distribución se ancla a una cuadrícula global para evitar duplicados al consultar chunks vecinos. Respeta biomas, límites de mapa y pendientes. El comando manual ya materializa robles, pinos, helechos y cactus en el chunk solicitado.
 
 ## Vista previa reproducible del mundo
 

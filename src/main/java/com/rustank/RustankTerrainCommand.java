@@ -51,7 +51,7 @@ public final class RustankTerrainCommand {
                         || !WorldBounds.contains(column.blockX(), column.blockZ())) {
                     continue;
                 }
-                for (int y = minY; y <= maxY; y++) {
+                for (int y = minY; y < maxY; y++) {
                     BlockState state = stateFor(column.materialAtY(y));
                     if (state == null) {
                         state = Blocks.AIR.defaultBlockState();
