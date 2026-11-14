@@ -44,6 +44,7 @@ jobs:
               "docs/TESTING.md",
               "docs/WINDOWS_RUNNER_SETUP.md",
               "Scripts/CheckEnvironment.ps1",
+              "Scripts/CaptureGameWindow.ps1",
           ]
           missing = [x for x in required if not Path(x).is_file()]
           if missing:
@@ -75,37 +76,17 @@ jobs:
           & $uat BuildCookRun "-project=$((Get-Location).Path)\SurvivalGame.uproject" -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak -archive "-archivedirectory=$((Get-Location).Path)\Artifacts\Windows" *> "Artifacts\Logs\build-cook-run.log"
           $buildExit = $LASTEXITCODE
           if ($buildExit -ne 0) { throw "BuildCookRun failed with exit code $buildExit. See Artifacts/Logs/build-cook-run.log." }
-      - name: Launch packaged game and capture desktop
+      - name: Launch packaged game and capture its window
         shell: powershell
         run: |
-          Add-Type -AssemblyName System.Windows.Forms
-          Add-Type -AssemblyName System.Drawing
           $exe = Get-ChildItem "Artifacts\Windows" -Filter "SurvivalGame.exe" -Recurse | Select-Object -First 1
           if (-not $exe) { throw "Expected packaged executable SurvivalGame.exe was not found." }
           $proc = Start-Process -FilePath $exe.FullName -ArgumentList "-windowed -ResX=1280 -ResY=720 -log" -PassThru
           try {
-            $deadline = (Get-Date).AddSeconds(45)
-            do {
-              Start-Sleep -Seconds 2
-              $proc.Refresh()
-              if ($proc.HasExited) { throw "Game exited before screenshot capture (exit code $($proc.ExitCode))." }
-            } while ($proc.MainWindowHandle -eq 0 -and (Get-Date) -lt $deadline)
-            if ($proc.MainWindowHandle -eq 0) { throw "Game process is alive but no visible main window was detected. Check that the runner is interactive, not running as a Windows service." }
-            Start-Sleep -Seconds 5
-            $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-            $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
-            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-            try {
-              $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
-              New-Item -ItemType Directory -Force -Path "Artifacts\Evidence" | Out-Null
-              $bitmap.Save((Join-Path (Get-Location) "Artifacts\Evidence\game-launch.png"), [System.Drawing.Imaging.ImageFormat]::Png)
-            }
-            finally {
-              $graphics.Dispose()
-              $bitmap.Dispose()
-            }
+            ./Scripts/CaptureGameWindow.ps1 -ProcessId $proc.Id -OutputPath "Artifacts\Evidence\game-launch.png" -StartupTimeoutSeconds 45
           }
           finally {
+            $proc.Refresh()
             if (!$proc.HasExited) { Stop-Process -Id $proc.Id -Force }
           }
       - name: Upload build logs and screenshot evidence
