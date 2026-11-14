@@ -10,8 +10,12 @@ Status: **in progress**
 - [x] Hosted validation workflow.
 - [x] Optional self-hosted Windows Unreal build-and-screenshot workflow.
 - [ ] Select and record the exact Unreal Engine 5 version.
+- [x] Added a Windows prerequisite checker and runner setup guide.
+- [x] Hosted validation passed for the runner setup commit.
 - [ ] Confirm a Windows build machine with Unreal Engine installed.
-- [ ] Run the first real editor build and attach its log.\n- [x] Hosted GitHub validation passed on commit c897abcc6142ade71c56d1ab36bcd8980d785b28 (repository checks only).\n- [x] Added Windows runner setup instructions and a local prerequisite-check script.
+- [ ] Run the first real editor build and attach its log.
+- [x] Hosted GitHub validation passed on commit c897abcc6142ade71c56d1ab36bcd8980d785b28 (repository checks only).
+- [x] Added Windows runner setup instructions and a local prerequisite-check script.
 - [ ] Launch the packaged application and capture a verified screenshot.
 - [ ] Review the screenshot and build output before closing Phase 1.
 

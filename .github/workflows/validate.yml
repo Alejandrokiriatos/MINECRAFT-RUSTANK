@@ -42,6 +42,8 @@ jobs:
               "Config/DefaultEngine.ini",
               "docs/ROADMAP.md",
               "docs/TESTING.md",
+              "docs/WINDOWS_RUNNER_SETUP.md",
+              "Scripts/CheckEnvironment.ps1",
           ]
           missing = [x for x in required if not Path(x).is_file()]
           if missing:
@@ -82,7 +84,7 @@ jobs:
           Add-Type -AssemblyName System.Drawing
           $exe = Get-ChildItem "Artifacts\Windows" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notmatch "CrashReportClient|UnrealCEFSubProcess" } | Select-Object -First 1
           if (-not $exe) { throw "Packaged game executable not found." }
-          $proc = Start-Process -FilePath $exe.FullName -PassThru
+          $proc = Start-Process -FilePath $exe.FullName -ArgumentList "-windowed -ResX=1280 -ResY=720 -log" -PassThru
           try {
             Start-Sleep -Seconds 25
             if ($proc.HasExited) { throw "Game exited before screenshot capture (exit code $($proc.ExitCode))." }
