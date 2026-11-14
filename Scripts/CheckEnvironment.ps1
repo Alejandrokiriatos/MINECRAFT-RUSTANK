@@ -17,7 +17,9 @@ foreach ($path in @($editor, $uat, $versionFile)) {
 $version = Get-Content $versionFile -Raw | ConvertFrom-Json
 Write-Host ("Detected Unreal Engine version: {0}.{1}.{2} (changelist {3})" -f $version.MajorVersion, $version.MinorVersion, $version.PatchVersion, $version.Changelist) -ForegroundColor Cyan
 
-$vswhere = Join-Path $env:ProgramFiles(x86) "Microsoft Visual Studio\Installer\vswhere.exe"
+$programFilesX86 = ${env:ProgramFiles(x86)}
+if (-not $programFilesX86) { throw "The ProgramFiles(x86) environment variable is not defined." }
+$vswhere = Join-Path $programFilesX86 "Microsoft Visual Studio\Installer\vswhere.exe"
 if (Test-Path $vswhere) {
     $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
     if (-not $vs) { throw "Visual Studio C++ toolset was not detected." }
