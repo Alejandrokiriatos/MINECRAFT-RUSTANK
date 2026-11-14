@@ -65,47 +65,56 @@ jobs:
       - name: Verify Unreal toolchain
         shell: powershell
         run: |
-          if (-not $env:UE_ROOT) { throw "Set UE_ROOT on this runner to the installed Unreal Engine root." }
-          $editor = Join-Path $env:UE_ROOT "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
-          $uat = Join-Path $env:UE_ROOT "Engine\Build\BatchFiles\RunUAT.bat"
-          if (!(Test-Path $editor)) { throw "UnrealEditor-Cmd.exe not found at $editor" }
-          if (!(Test-Path $uat)) { throw "RunUAT.bat not found at $uat" }
+          ./Scripts/CheckEnvironment.ps1
           "UE_ROOT=$env:UE_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Build and package Windows game
         shell: powershell
         run: |
+          New-Item -ItemType Directory -Force -Path "Artifacts\Logs" | Out-Null
           $uat = Join-Path $env:UE_ROOT "Engine\Build\BatchFiles\RunUAT.bat"
-          & $uat BuildCookRun "-project=$((Get-Location).Path)\SurvivalGame.uproject" -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak -archive "-archivedirectory=$((Get-Location).Path)\Artifacts\Windows"
-          if ($LASTEXITCODE -ne 0) { throw "BuildCookRun failed with exit code $LASTEXITCODE" }
+          & $uat BuildCookRun "-project=$((Get-Location).Path)\SurvivalGame.uproject" -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak -archive "-archivedirectory=$((Get-Location).Path)\Artifacts\Windows" *> "Artifacts\Logs\build-cook-run.log"
+          $buildExit = $LASTEXITCODE
+          if ($buildExit -ne 0) { throw "BuildCookRun failed with exit code $buildExit. See Artifacts/Logs/build-cook-run.log." }
       - name: Launch packaged game and capture desktop
         shell: powershell
         run: |
           Add-Type -AssemblyName System.Windows.Forms
           Add-Type -AssemblyName System.Drawing
-          $exe = Get-ChildItem "Artifacts\Windows" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notmatch "CrashReportClient|UnrealCEFSubProcess" } | Select-Object -First 1
-          if (-not $exe) { throw "Packaged game executable not found." }
+          $exe = Get-ChildItem "Artifacts\Windows" -Filter "SurvivalGame.exe" -Recurse | Select-Object -First 1
+          if (-not $exe) { throw "Expected packaged executable SurvivalGame.exe was not found." }
           $proc = Start-Process -FilePath $exe.FullName -ArgumentList "-windowed -ResX=1280 -ResY=720 -log" -PassThru
           try {
-            Start-Sleep -Seconds 25
-            if ($proc.HasExited) { throw "Game exited before screenshot capture (exit code $($proc.ExitCode))." }
+            $deadline = (Get-Date).AddSeconds(45)
+            do {
+              Start-Sleep -Seconds 2
+              $proc.Refresh()
+              if ($proc.HasExited) { throw "Game exited before screenshot capture (exit code $($proc.ExitCode))." }
+            } while ($proc.MainWindowHandle -eq 0 -and (Get-Date) -lt $deadline)
+            if ($proc.MainWindowHandle -eq 0) { throw "Game process is alive but no visible main window was detected. Check that the runner is interactive, not running as a Windows service." }
+            Start-Sleep -Seconds 5
             $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
             $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
             $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-            $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
-            New-Item -ItemType Directory -Force -Path "Artifacts\Evidence" | Out-Null
-            $bitmap.Save((Join-Path (Get-Location) "Artifacts\Evidence\game-launch.png"), [System.Drawing.Imaging.ImageFormat]::Png)
-            $graphics.Dispose()
-            $bitmap.Dispose()
+            try {
+              $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+              New-Item -ItemType Directory -Force -Path "Artifacts\Evidence" | Out-Null
+              $bitmap.Save((Join-Path (Get-Location) "Artifacts\Evidence\game-launch.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+            }
+            finally {
+              $graphics.Dispose()
+              $bitmap.Dispose()
+            }
           }
           finally {
             if (!$proc.HasExited) { Stop-Process -Id $proc.Id -Force }
           }
-      - name: Upload build and screenshot evidence
+      - name: Upload build logs and screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: windows-smoke-test-evidence
           path: |
+            Artifacts/Logs
             Artifacts/Windows
             Artifacts/Evidence
           if-no-files-found: warn
