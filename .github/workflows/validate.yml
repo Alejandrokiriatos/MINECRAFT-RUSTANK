@@ -1,0 +1,110 @@
+name: Project validation and Windows smoke test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_unreal_smoke_test:
+        description: Build, launch and capture screenshot on the self-hosted Unreal Windows runner
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate repository bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Validate project descriptor and source layout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path("SurvivalGame.uproject").read_text(encoding="utf-8"))
+          assert p["FileVersion"] == 3
+          assert any(m["Name"] == "SurvivalGame" for m in p["Modules"])
+          required = [
+              "Source/SurvivalGame.Target.cs",
+              "Source/SurvivalGameEditor.Target.cs",
+              "Source/SurvivalGame/SurvivalGame.Build.cs",
+              "Source/SurvivalGame/SurvivalGame.cpp",
+              "Source/SurvivalGame/SurvivalGame.h",
+              "Config/DefaultEngine.ini",
+              "docs/ROADMAP.md",
+              "docs/TESTING.md",
+          ]
+          missing = [x for x in required if not Path(x).is_file()]
+          if missing:
+              raise SystemExit("Missing required bootstrap files: " + ", ".join(missing))
+          print("Project descriptor and bootstrap layout: OK")
+          PY
+
+  unreal-windows-smoke-test:
+    name: Unreal Windows build and screenshot
+    if: github.event_name == 'workflow_dispatch' && inputs.run_unreal_smoke_test
+    needs: validate
+    runs-on: [self-hosted, Windows, X64, UnrealEngine]
+    timeout-minutes: 90
+    steps:
+      - name: Checkout with LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Verify Unreal toolchain
+        shell: powershell
+        run: |
+          if (-not $env:UE_ROOT) { throw "Set UE_ROOT on this runner to the installed Unreal Engine root." }
+          $editor = Join-Path $env:UE_ROOT "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
+          $uat = Join-Path $env:UE_ROOT "Engine\Build\BatchFiles\RunUAT.bat"
+          if (!(Test-Path $editor)) { throw "UnrealEditor-Cmd.exe not found at $editor" }
+          if (!(Test-Path $uat)) { throw "RunUAT.bat not found at $uat" }
+          "UE_ROOT=$env:UE_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Build and package Windows game
+        shell: powershell
+        run: |
+          $uat = Join-Path $env:UE_ROOT "Engine\Build\BatchFiles\RunUAT.bat"
+          & $uat BuildCookRun "-project=$((Get-Location).Path)\SurvivalGame.uproject" -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -pak -archive "-archivedirectory=$((Get-Location).Path)\Artifacts\Windows"
+          if ($LASTEXITCODE -ne 0) { throw "BuildCookRun failed with exit code $LASTEXITCODE" }
+      - name: Launch packaged game and capture desktop
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $exe = Get-ChildItem "Artifacts\Windows" -Filter "*.exe" -Recurse | Where-Object { $_.Name -notmatch "CrashReportClient|UnrealCEFSubProcess" } | Select-Object -First 1
+          if (-not $exe) { throw "Packaged game executable not found." }
+          $proc = Start-Process -FilePath $exe.FullName -PassThru
+          try {
+            Start-Sleep -Seconds 25
+            if ($proc.HasExited) { throw "Game exited before screenshot capture (exit code $($proc.ExitCode))." }
+            $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+            New-Item -ItemType Directory -Force -Path "Artifacts\Evidence" | Out-Null
+            $bitmap.Save((Join-Path (Get-Location) "Artifacts\Evidence\game-launch.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+            $graphics.Dispose()
+            $bitmap.Dispose()
+          }
+          finally {
+            if (!$proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+          }
+      - name: Upload build and screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke-test-evidence
+          path: |
+            Artifacts/Windows
+            Artifacts/Evidence
+          if-no-files-found: warn
+          retention-days: 14

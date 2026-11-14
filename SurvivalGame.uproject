@@ -1,0 +1,13 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "",
+  "Category": "Games",
+  "Description": "Standalone multiplayer survival game. Initial C++ foundation.",
+  "Modules": [
+    {
+      "Name": "SurvivalGame",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
