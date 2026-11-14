@@ -25,7 +25,7 @@ This connects GitHub Actions to a real Windows desktop capable of running the Un
 3. Choose **Run workflow** on `main`.
 4. Enable `run_unreal_smoke_test`.
 5. Start the workflow and wait for the Windows job.
-6. Download artifact `windows-smoke-test-evidence`. It should contain the packaged build, build log and `Artifacts/Evidence/game-launch.png`.
+6. Download artifact `windows-smoke-test-evidence`. It should contain the packaged build, build log and a PNG containing only the game window at `Artifacts/Evidence/game-launch.png`.
 
 ## Important
 - Do not pin an engine version until the installed version is confirmed.
